@@ -73,9 +73,17 @@ Este código se debe ejecutar manualmente cada vez que el usuario desee actualiz
  	
 ## Guía de instalación
 ---
-Antes de ejecutar el código, el usuario debe asegurarse que tiene instalados los siguientes componentes:
-- Python
-- MongoDB
+Antes de ejecutar el código, el usuario debe asegurarse que tiene un ambiente de python con todas las dependencias instaladas. En Mottum se lo hemos querido hacer fácil y por eso te recomendamos que crees un nuevo "Environment" con las librerías necesarias. Para eso te recomentamos que sigas los siguientes pasos:
+
+1. Crea un ambiente
+`python3 -m venv [nombre del environment]`
+
+2. Activa el ambiente
+`source [nombre del enviromenmt]/bin/activate #Para iOS`
+`source [nombre del enviromenmt]/bin/activate.bat #Para Windows`
+
+3. Instala todas las librerías necesarias
+`pip install -r requirements.txt`
 
 Una vez instalados esos componentes, el usuario debe ejecutar los scripts en el siguiente orden:
 
