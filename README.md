@@ -20,22 +20,24 @@
 
 ## Descripción y contexto
 ---
-Este repositorio aloja el código y la documentación encargados del procesamiento y limpieza de los datos del Sistema Seis de la [Plataforma Nacional Digital](https://www.plataformadigitalnacional.org/contrataciones). Concretamente, el presente código en python se encarga de seguir los siguientes pasos:
+Este repositorio aloja el código y la documentación encargados del procesamiento y limpieza de los datos del Sistema Seis de la [Plataforma Nacional Digital](https://www.plataformadigitalnacional.org/contrataciones). Concretamente, el código en python se encarga de seguir los siguientes pasos:
 
 1. Descarga de la base de datos
-2. Carga de datos en MongoDB y creación de archivos .csv
+2. Creación de archivos en formato .csv
 3. Limpieza de datos
 
 Adicionalmente, este repositorio tendrá la documentación en formato Word y pdf para facilitar la lectura y entendimiento del proceso. Esta información se pueden encontrar en la carpeta /DOCUMENTACIÓN
 
 ### 1. Descarga de la base de datos
-    Scripts en python encargados de descargar de la web (XXX) el dataset comprimido en formato .zip. Este script también se encargan de descomprimir y renombrar el archivo para llevar un buen control de versiones.
+    Scripts en python encargados de descargar de la web (Compranetinfo) el dataset comprimido en formato .zip. Este script también se encargan de descomprimir y renombrar el archivo para llevar un buen control de versiones.
 
-    Este proceso se hace de manera semi-automática, es decir, el usuario es responsable de configurar los ambientes, instalar el MongoDB en local y ejecutar el script. En la documentación se provee una guía de todos estos pasos.
+    Este proceso se hace de manera semi-automática, es decir, el usuario es responsable de configurar los ambientes, instalar las herramientas en local y ejecutar el script. En la documentación se provee una guía de todos estos pasos.
 
     Como proceso adicional, se diseña un sistema automático de descarga de datos en la nube; sin embargo este repositorio sólo incluye el diseño teórico de dicho sistema (Ver documentación).
 
-### 2. Carga de datos en MongoDB y creación de archivos .csv
+    Web de decarga de datos: https://compranetinfo.hacienda.gob.mx/dabiertos/contrataciones_arr.json.zip
+
+### 2. Creación de archivos .csv
 _...In progress..._
 
 ### 3. Limpieza de datos
@@ -63,16 +65,24 @@ _...In progress..._
 - `LICENSE.txt`      # Licencia del proyecto
 - `requirements.txt` # Dependencias del proyecto
 
-## Guía de usuario
----
-_Explica los pasos básicos sobre cómo usar la herramienta digital. Es una buena sección para mostrar capturas de antalla o gifs que ayuden a entender la herramienta digital._
-Este código se debe ejecutar manualmente cada vez que el usuario desee actualizar el historial de datos de contrataciones públicas. Para ello el usuario deberá seguir los siguientes pasos:
-1. _In progress_
-2. _In progress_
-3. _..._
- 	
 ## Guía de instalación
 ---
+Antes de ejecutar el código, el usuario debe asegurarse que tiene un ambiente preparado con todas las dependencias intaladas. Este conjunto de datos es muy pesado y el proceso puede demorarse si se corre en una máquina sin las capacidades adecuadas. Por razones externas al proyecto se ha decidido no ejecutar el proceso en una nube virtual, sino en una máquina física con las siguientes características:
+  - Windows
+  - RAM de 32 Gb
+  - 4 Cores
+
+Durante esta consultoría, y para replicar estas características, se ha replicado esta máquina en un ambiente de Azure.
+
+Siga los siguientes pasos para instalar todas las herramientas necesarias:
+  1. Instale python. Se recomienda la versión de Anaconda.
+  2. Instale Pyspark, para ello necesita instalar:
+    - Java
+    - Editar las variables de ambiente
+    - Instalar Pyspark
+    Consulte el siguiente link para más información: https://www.datacamp.com/tutorial/installation-of-pyspark
+
+
 Antes de ejecutar el código, el usuario debe asegurarse que tiene un ambiente de python con todas las dependencias instaladas. En Mottum se lo hemos querido hacer fácil y por eso te recomendamos que crees un nuevo "Environment" con las librerías necesarias. Para eso te recomentamos que sigas los siguientes pasos:
 
 1. Crea un ambiente
@@ -91,6 +101,14 @@ _La guía de instalación debe contener de manera específica:_
 _- Los requisitos del sistema operativo para la compilación (versiones específicas de librerías, software de gestión de paquetes y dependencias, SDKs y compiladores, etc.)._
 _- Las dependencias propias del proyecto, tanto externas como internas (orden de compilación de sub-módulos, configuración de ubicación de librerías dinámicas, etc.)._
 _- Pasos específicos para la compilación del código fuente y ejecución de tests unitarios en caso de que el proyecto disponga de ellos._
+
+## Guía de usuario
+---
+_Explica los pasos básicos sobre cómo usar la herramienta digital. Es una buena sección para mostrar capturas de antalla o gifs que ayuden a entender la herramienta digital._
+Este código se debe ejecutar manualmente cada vez que el usuario desee actualizar el historial de datos de contrataciones públicas. Para ello el usuario deberá seguir los siguientes pasos:
+1. _In progress_
+2. _In progress_
+3. _..._
 
 ## Tutoriales
 ---
