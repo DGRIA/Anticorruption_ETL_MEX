@@ -1,10 +1,16 @@
 ## Sistema de Descarga y transformación de los Datos de Contrataciones Públicas (Sistema 6) 👇
 
 
+**Objetivo**: Descarga y transformación de datos del histórico de contratos de México para facilitar las labores de análisis y extracción de conocimiento.
+
 *Esta herramienta digital forma parte de la Secretaría Ejecutiva del Sistema Nacional de Anticorrupción de la República de México [https://www.sesna.gob.mx/](www.sesna.gob.mx)*
-- code coverage percentage: ![coverage](https://img.shields.io/badge/coverage-10%25-yellowgreen)
-- stable release version: ![version](https://img.shields.io/badge/version-1.2.3-blue)
-- package manager release: ![gem](https://img.shields.io/badge/gem-2.2.0-blue)
+
+- ![Static Badge](https://img.shields.io/badge/Language-Python-blue?style=plastic)
+- ![Static Badge](https://img.shields.io/badge/Language-pySpark-green?style=plastic)
+- ![Static Badge](https://img.shields.io/badge/Language-MongoDB-yellow?style=plastic)
+- ![Static Badge](https://img.shields.io/badge/Status-Development-orange?style=for-the-badge)
+- ![Static Badge](https://img.shields.io/badge/Coverage-40%25-blue?style=for-the-badge)
+
 
 ## Tabla de contenidos:
 ---
@@ -20,50 +26,65 @@
 
 ## Descripción y contexto
 ---
-Este repositorio aloja el código y la documentación encargados del procesamiento y limpieza de los datos del Sistema Seis de la [Plataforma Nacional Digital](https://www.plataformadigitalnacional.org/contrataciones). Concretamente, el código en python se encarga de seguir los siguientes pasos:
+Este repositorio aloja el código y la documentación encargados del procesamiento y limpieza de los datos del Sistema Seis de la [Plataforma Nacional Digital](https://www.plataformadigitalnacional.org/contrataciones). A alto nivel, este código en python se encarga de seguir los siguientes pasos:
 
-1. Descarga de la base de datos
-2. Creación de archivos en formato .csv
+1. Descarga de la base de datos y descompresión del archivo .zip a json.
+2. Creación de las 7 tablas en formato .csv
 3. Limpieza de datos
 
 Adicionalmente, este repositorio tendrá la documentación en formato Word y pdf para facilitar la lectura y entendimiento del proceso. Esta información se pueden encontrar en la carpeta /DOCUMENTACIÓN
 
-### 1. Descarga de la base de datos
-    Scripts en python encargados de descargar de la web (Compranetinfo) el dataset comprimido en formato .zip. Este script también se encargan de descomprimir y renombrar el archivo para llevar un buen control de versiones.
+### 1. Descarga de la base de datos y descompresión del archivo .zip a json.
+Scripts en python encargados de descargar de la web (Compranetinfo) el dataset comprimido en formato .zip. Este script también se encargan de descomprimir y renombrar el archivo para llevar un buen control de versiones.
 
-    Este proceso se hace de manera semi-automática, es decir, el usuario es responsable de configurar los ambientes, instalar las herramientas en local y ejecutar el script. En la documentación se provee una guía de todos estos pasos.
+Este proceso se hace de manera semi-automática, es decir, el usuario es responsable de configurar los ambientes, instalar las herramientas en local y ejecutar el script. Visitar la carpeta de Tutoriales para más información.
 
-    Como proceso adicional, se diseña un sistema automático de descarga de datos en la nube; sin embargo este repositorio sólo incluye el diseño teórico de dicho sistema (Ver documentación).
+Como proceso adicional, se diseña un sistema automático de descarga de datos en la nube; sin embargo este repositorio sólo incluye el diseño teórico de dicho sistema (Ver carpeta documentación Entregable 1).
 
-    Web de decarga de datos: https://compranetinfo.hacienda.gob.mx/dabiertos/contrataciones_arr.json.zip
+  **-->** Web de decarga de datos: https://compranetinfo.hacienda.gob.mx/dabiertos/contrataciones_arr.json.zip
 
-### 2. Creación de archivos .csv
-_...In progress..._
+### 2. Creación de las 7 tablas en formato .csv
+  _...Esta sección se encuentra en progreso..._
+El formato de origen de estos datos presenta dos inconvenientes que este código resuelve:
+
+- Formato json: El formato de los datos sigue el estándar EDCA, un formato json con múltiples jerarquías en sus campos.
+- Tamaño del archivo: El archivo json descomprimido pesa 25 GB, lo que hace que para el procesado se necesiten técnicas optimizadas de computación.
+
+El Entregable número 2 dentro de la carpeta de Documentos explica la metodología seguida para resolver estos dos inconvenientes.
 
 ### 3. Limpieza de datos
-    _...In progress..._
+  _...Esta sección se encuentra en progreso..._
+
+El proceso de limpieza de datos se centra en la identificación de las siguientes inconsistencias.
+- Estadísticas descriptivas por tipo de procedimientos.
+- Estadísticas de calidad de la información
+- Duplicado de expedientes con más de un estatus.
+- Duplicado de expedientes con más de una fecha de contratación
+- Registro de asignaciones duplicados
 
 ## Estructura de carpetas
 
 **Limpieza datos de contrataciones**
 
 - `README.md`  # Descripción del proyecto, instrucciones de instalación y uso
-- `.gitignore` # Archivos y carpetas a ignorar en git
-- `bin`        # Scripts ejecutables y binarios
-- `data`       # Scripts para descargar o generar datos
+- `notebooks`  # Jupyter notebooks (para exploración y presentación)
+  - `1_Data Download & Unzip.ipynb` # Jupyter Notebook para descargar los datos y descomprimirlos
+  - `2_Extraction_MongoDB.ipynb` # Lectura de los datos en Mongo y generación de tablas (de una muestra pequeña de los datos)
+  - `3_Extraction_Pyspark.ipynb` # Lectura de los datos en Pyspark y generación de tablas (del universo de datos completo)
+  - `3_Data Cleaning.ipynb` # Jupyter Notebook para la limpieza de los datos
+  - `test pysparkjson.ipynb` # Jupyter Notebook de Test
+- `docs` # Documentación (alternativamente /doc)
+  - `Entregable 1.pdf`
+  - `Entregable 2.pdf`
+  - `Entregable 3.pdf` *En progreso*
+  - `Anexo1_Diagrama ER de base de datos EDCA.pdf`
+  - `Relación variables EDCA-MODELO ER.xlsx`
+- `data`       # Scripts para descargar o generar datos (En github se mantienen vacíos)
   - `raw`
   - `processed`
-- `notebooks`  # Jupyter notebooks (para exploración y presentación)
-- `documentación` # Documentación (alternativamente /doc)
-  - `reporte1.pdf`
-  - `reporte2.pdf`
-  - `reporte3.pdf`
-- `src`        # Código fuente del proyecto
-  - `__init__.py`
-  - `data`     # Scripts para configurar tu base de datos MongoDB
-  - `1.1 Data Download.ipynb` # Script para descargar los datos
 - `LICENSE.txt`      # Licencia del proyecto
 - `requirements.txt` # Dependencias del proyecto
+- `.gitignore` # Archivos y carpetas a ignorar en git
 
 ## Guía de instalación
 ---
