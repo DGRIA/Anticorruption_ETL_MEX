@@ -318,8 +318,10 @@ pyrightconfig.json
 
 ## FOR THIS PROJECT (Provisional)
 
-data/*
+
 !/data/.gitkeep
+!/logs/.gitkeep
+!/test/.gitkeep
 /logs/
 data/*
 SESNA_ENV
