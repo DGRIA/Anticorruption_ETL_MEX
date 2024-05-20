@@ -317,8 +317,7 @@ pyrightconfig.json
 .ionide
 
 ## FOR THIS PROJECT (Provisional)
-
-
+.ipynb_checkpoints/
 !/data/.gitkeep
 !/logs/.gitkeep
 !/test/.gitkeep
