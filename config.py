@@ -20,6 +20,7 @@ class LoggerConfig:
         self.format = '[%(levelname)s] - %(asctime)s - %(name)s - %(funcName)s - %(filename)s:%(lineno)d -  %(message)s'
         self.datefmt = '%Y-%m-%d %H:%M:%S'
         self.filename = 'logs/main.log'
+        self.log_path = os.path.join(os.getcwd(), "logs")
 
     def setup(self):
         log_formatter = logging.Formatter(self.format, datefmt=self.datefmt)
@@ -40,9 +41,12 @@ class LoggerConfig:
 class PathConfig:
     def __init__(self):
         self.data_path = os.path.join(os.getcwd(), "data")
+        self.docs_path = os.path.join(os.getcwd(), "docs")
+        self.log_path = os.path.join(os.getcwd(), "logs")
+        self.src_path = os.path.join(os.getcwd(), "src")
+        self.test_path = os.path.join(os.getcwd(), "test")
 
 
 logger_config = LoggerConfig()
 logger_config.setup()
-
 path_config = PathConfig()
