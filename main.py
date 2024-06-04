@@ -2,6 +2,9 @@ import config
 import logging
 from src import data_download_unzip
 import time
+import pandas as pd
+from pymongo import MongoClient
+from src.extraction_mongodb import connect_to_mongodb, extract_participantes_proveedores
 
 logger = logging.getLogger("Contrataciones")
 logger.setLevel(logging.INFO)
@@ -17,3 +20,15 @@ if __name__ == '__main__':
     end = time.time()
     logger.info(f"Tiempo de ejecución: {end - start}")
     logger.info("Fin de Ejecución")
+
+
+
+
+
+
+
+
+
+
+
+
