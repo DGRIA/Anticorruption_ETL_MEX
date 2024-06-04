@@ -14,7 +14,7 @@ logger = logging.getLogger("Contrataciones")
 logger.setLevel(logging.INFO)
 
 # Definición de las rutas de los archivos
-URL_CONTRATACIONES = path_config.contratacion_url
+URL_CONTRATACIONES = path_config.contrataciones_url
 RAW_DATA_PATH = path_config.contrataciones_raw_path
 UNZIP_DATA_PATH = path_config.contrataciones_raw_unzip_path
 
@@ -28,8 +28,7 @@ def download_contrataciones_zip(url=URL_CONTRATACIONES):
     progress_bar = tqdm(total=total_size_in_bytes, unit='iB', unit_scale=True)
 
     with open(RAW_DATA_PATH, 'wb') as f:
-        # TODO Optimizar los tamaño de los chunks para docker
-        for chunk in response.iter_content(chunk_size=4096 * 4096):
+        for chunk in response.iter_content(chunk_size=2048 * 2048):
             progress_bar.update(len(chunk))
             f.write(chunk)
     progress_bar.close()
@@ -48,8 +47,7 @@ def unzip(zip_file_path=RAW_DATA_PATH, unzip_path=UNZIP_DATA_PATH):
 
             with tqdm(total=file_info.file_size, desc="Extrayendo JSON", unit="B", unit_scale=True) as pbar:
                 with zip_file.open(file) as zf, open(os.path.join(unzip_path, file), 'wb') as fout:
-                    # TODO Optimizar los tamaño de los chunks para docker
-                    for chunk in iter(lambda: zf.read(8192 * 8192), b''):
+                    for chunk in iter(lambda: zf.read(2048 * 2048), b''):
                         fout.write(chunk)
                         pbar.update(len(chunk))
 
