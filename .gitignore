@@ -322,6 +322,7 @@ pyrightconfig.json
 !/logs/.gitkeep
 !/test/.gitkeep
 /logs/
+!data/**/*.gitkeep
 data/*
 SESNA_ENV
 .DS_Store

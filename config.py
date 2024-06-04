@@ -45,7 +45,9 @@ class PathConfig:
         self.log_path = os.path.join(os.getcwd(), "logs")
         self.src_path = os.path.join(os.getcwd(), "src")
         self.test_path = os.path.join(os.getcwd(), "test")
-
+        self.contratacion_url = "https://compranetinfo.hacienda.gob.mx/dabiertos/contrataciones_arr.json.zip"
+        self.contrataciones_raw_path = os.path.join(os.getcwd(), "data/Raw/contrataciones_arr.json.zip")
+        self.contrataciones_raw_unzip_path = os.path.join(os.getcwd(), "data/Raw/")
 
 logger_config = LoggerConfig()
 logger_config.setup()
