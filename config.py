@@ -12,8 +12,6 @@ except Exception as e:
 """
 
 
-# TODO Ver si dejar el nombre de la función
-
 class LoggerConfig:
     def __init__(self):
         self.level = os.getenv('LOG_LEVEL', 'WARNING').upper()
@@ -40,15 +38,33 @@ class LoggerConfig:
 
 class PathConfig:
     def __init__(self):
+        # Directorios
         self.data_path = os.path.join(os.getcwd(), "data")
         self.docs_path = os.path.join(os.getcwd(), "docs")
         self.log_path = os.path.join(os.getcwd(), "logs")
         self.src_path = os.path.join(os.getcwd(), "src")
         self.test_path = os.path.join(os.getcwd(), "test")
-        self.contratacion_url = "https://compranetinfo.hacienda.gob.mx/dabiertos/contrataciones_arr.json.zip"
+
+        # Archivos y direcciones
+        self.contrataciones_url = "https://compranetinfo.hacienda.gob.mx/dabiertos/contrataciones_arr.json.zip"
         self.contrataciones_raw_path = os.path.join(os.getcwd(), "data/Raw/contrataciones_arr.json.zip")
         self.contrataciones_raw_unzip_path = os.path.join(os.getcwd(), "data/Raw/")
+        self.contrataciones_processed_raw_path = os.path.join(os.getcwd(), "data/Processed/All_Tables_Raw/")
+        self.contrataciones_processed_parquet_path = os.path.join(os.getcwd(), "data/Processed/parquet_files/")
+        self.contrataciones_processed_cleaned_path = os.path.join(os.getcwd(), "data/Processed/Cleaned/")
+        self.contrataciones_processed_cleaned_parquet_path = os.path.join(os.getcwd(),
+                                                                          "data/Processed/Cleaned/parquet_files/")
 
+
+# Definición de constantes
+# MongoDB
+DB_NAME = 'Contratos_EDCA'
+COLLECTION_NAME = 'Contratos_EDCA_Bulk'
+DB_URL = 'mongodb://localhost:27018/'
+# JSON Files
+CONTRATACIONES_JSON = 'contratacionesabiertas_bulk.json'
+
+# Logger setup
 logger_config = LoggerConfig()
 logger_config.setup()
 path_config = PathConfig()
