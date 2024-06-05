@@ -22,6 +22,6 @@ COPY . /app
 
 #RUN python -m pytest -p no:warnings
 
-ENTRYPOINT ["sh", "-c", "jupyter notebook --ip=0.0.0.0 --port=8888 --no-browser --allow-root --ServerApp.token='' --ServerApp.password='' --ServerApp.allow_origin='*'] # & streamlit run main.py --server.port=8501 --server.address=0.0.0.0"]
+ENTRYPOINT ["sh", "-c", "jupyter notebook --ip=0.0.0.0 --port=8888 --no-browser --allow-root --ServerApp.token='' --ServerApp.password='' --ServerApp.allow_origin='*' & streamlit run main.py --server.port=8501 --server.address=0.0.0.0"]
 
 #ENTRYPOINT ["python", "main.py"]
