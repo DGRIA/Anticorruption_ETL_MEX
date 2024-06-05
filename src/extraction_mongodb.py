@@ -1,29 +1,19 @@
 import pandas as pd
+from config import DB_NAME, DB_URL, COLLECTION_NAME, path_config
 from pymongo import MongoClient
 import logging
 
 # Configuración del logger
 logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
+logger = logging.getLogger("Contrataciones")
 
-def connect_to_mongodb():
-    """Conexión a la base de datos MongoDB en local."""
-    try:
-        logger.info("Conectando a la base de datos MongoDB...")
-        client = MongoClient('mongodb://localhost:27017/', connectTimeoutMS=30000)
-        db = client['Contratos_EDCA']
-        logger.info("Conexión exitosa a la base de datos.")
-        return db
-    except Exception as e:
-        logger.error(f"Error al conectar a la base de datos: {e}")
-        return None
 
 def extract_participantes_proveedores(db):
     """Extrae los datos de Participantes_Proveedores y los guarda en un archivo csv."""
     try:
-        logger.info("Iniciando extracción de Participantes_Proveedores...")
+        logger.info("Iniciando extracción de Participantes Proveedores...")
         # Realiza la consulta a la base de datos
-        consulta_actualizada = db['Contratos_EDCA_Bulk'].find({}, {})
+        consulta_actualizada = db[COLLECTION_NAME].find({}, {})
         datos = []
         for contrato in consulta_actualizada:
             for release in contrato.get('releases', []):
@@ -53,7 +43,9 @@ def extract_participantes_proveedores(db):
         df_participantes_proveedores = pd.DataFrame(datos)
         # Verifica si se obtuvieron datos
         if not df_participantes_proveedores.empty:
-            df_participantes_proveedores.to_csv('../data/Processed/All_Tables_Raw/participantes_proveedores_v2_Raw.csv', index=False, encoding='utf-8')
+            df_participantes_proveedores.to_csv(
+                path_config.contrataciones_processed_raw_path + 'participantes_proveedores_raw.csv',
+                index=False, encoding='utf-8')
             logger.info("Extracción de Participantes_Proveedores finalizada.")
         else:
             logger.warning("No se encontraron datos para extraer.")
@@ -66,7 +58,7 @@ def extract_licitacion_data(db):
     try:
         logger.info("Iniciando extracción de datos de licitación...")
 
-        consulta_actualizada = db['Contratos_EDCA_Bulk'].find({}, {})
+        consulta_actualizada = db[COLLECTION_NAME].find({}, {})
 
         datos = []
         for contrato in consulta_actualizada:
@@ -122,13 +114,14 @@ def extract_licitacion_data(db):
                 contrato_dict['submission_method'] = tender.get('submissionMethod', [''])[0]
 
             except AttributeError:
-                pass
+                logger.error("Error al extraer datos de licitación.")
             datos.append(contrato_dict)
 
         df_licitacion = pd.DataFrame(datos)
 
         if not df_licitacion.empty:
-            df_licitacion.to_csv('../data/Processed/All_Tables_Raw/licitacion_data_Raw.csv', index=False, encoding='utf-8')
+            df_licitacion.to_csv(path_config.contrataciones_raw_path + 'licitacion_data_raw.csv', index=False,
+                                 encoding='utf-8')
             logger.info("Extracción de datos de licitación finalizada.")
         else:
             logger.warning("No se encontraron datos para extraer de licitación.")
@@ -138,10 +131,10 @@ def extract_licitacion_data(db):
 
 
 # Este bloque solo se ejecuta si ejecutas este script directamente
-if __name__ == "__main__":
-    # Conexión a MongoDB
-    db = connect_to_mongodb()
-    if db is not None:
-        # Extracción de datos y generación del archivo CSV
-        extract_participantes_proveedores(db)
-        extract_licitacion_data(db)
+# if __name__ == "__main__":
+#     # Conexión a MongoDB
+#     db = connect_to_mongodb()
+#     if db is not None:
+#         # Extracción de datos y generación del archivo CSV
+#         extract_participantes_proveedores(db)
+#         extract_licitacion_data(db)

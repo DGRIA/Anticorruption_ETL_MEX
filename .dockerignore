@@ -1,0 +1,8 @@
+data/
+!data/Cleaned/.gitkeep
+!data/Cleaned/parquet_files/.gitkeep
+!/data/Processed/.gitkeep
+!data/Processed/All_Tables_Raw/.gitkeep
+!/data/Processed/parquet_files/.gitkeep
+!/data/Raw/.gitkeep
+
