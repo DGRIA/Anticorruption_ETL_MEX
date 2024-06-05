@@ -1,21 +1,21 @@
 # 🇲🇽 Proyecto de ETL Anticorrupción México 
 
 ## 📑 Tabla de Contenidos
-- [Descripción del Proyecto](#📖-descripción-del-proyecto)
-- [Descripción de Archivos en `SRC`](#descripción-de-archivos-en-src)
-- [Guía de Usuario](#🛠️-guía-de-usuario)
-- [Cómo Contribuir](#🌟-cómo-contribuir)
-- [Autores](#👥-autores)
+- [Descripción del Proyecto](#descripción-del-proyecto)
+- [Descripción del Código Principal](#descripción-de-archivos-en-src)
+- [Guía de Usuario](#guía-de-usuario)
+- [Cómo Contribuir](#cómo-contribuir)
+- [Autores](#autores)
 
-## 📖 Descripción del Proyecto
+## Descripción del Proyecto
 Este proyecto de ETL (Extract, Transform, Load) está enfocado en la lucha contra la corrupción en México. Utiliza datos públicos relacionados con contrataciones y procesos de licitación, siguiendo el estándar de contrataciones abiertas (EDCA). El proyecto permite descargar, transformar y analizar datos utilizando diversas herramientas y tecnologías, incluyendo Docker, Streamlit y Jupyter Notebooks.
 
-### Descripción del funcionamiento del código principal`
+### escripción del Código Principal
 - **data_download_unzip.py**: Este archivo contiene un script en Python diseñado para descargar archivos zip de una URL especificada y descomprimirlos en un directorio de destino. Utiliza la biblioteca `requests` para manejar la descarga de archivos y `zipfile` para la extracción del contenido. Este script es esencial para la etapa inicial del proceso ETL, asegurando que los datos estén disponibles localmente para su posterior procesamiento y análisis.
 
 - **extraction_mongodb.py**: Este archivo contiene un script en Python diseñado para extraer datos desde una base de datos MongoDB. Utiliza la biblioteca `pymongo` para conectarse a la base de datos y realizar consultas. Los datos extraídos se procesan y transforman para su posterior análisis y almacenamiento. Este script es fundamental en la fase de extracción del proceso ETL, asegurando que los datos necesarios sean recuperados y preparados correctamente para los siguientes pasos.
 
-## 🛠️ Guía de Usuario
+## Guía de Usuario
 
 ### Clonar el Repositorio
 Para comenzar, debe clonar este repositorio en su máquina local utilizando el siguiente comando:
@@ -47,7 +47,7 @@ Aquí encontrará una interfaz de usuario en Streamlit donde podrá ejecutar cad
 **Jupyter Notebooks:** [http://localhost:8888/](http://localhost:8888/)
 Acceda a los notebooks de Jupyter con todo el código en Python, incluyendo el Análisis Exploratorio de Datos (EDA).
 
-## 🌟 Cómo Contribuir
+## Cómo Contribuir
 
 Damos la bienvenida a contribuciones de la comunidad:
 
@@ -57,7 +57,7 @@ Damos la bienvenida a contribuciones de la comunidad:
 4. Empuja a la rama (`git push origin feature-branch`).
 5. Crea un nuevo Pull Request.
 
-## 👥 Autores
+## Autores
 
 **Mottum Analytica**
 
