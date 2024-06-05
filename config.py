@@ -60,7 +60,8 @@ class PathConfig:
 # MongoDB
 DB_NAME = 'Contratos_EDCA'
 COLLECTION_NAME = 'Contratos_EDCA_Bulk'
-DB_URL = 'mongodb://localhost:27018/'
+DB_URL_DOCKER = 'mongodb://db:27017'
+DB_URL = 'mongodb://localhost:27017'
 # JSON Files
 CONTRATACIONES_JSON = 'contratacionesabiertas_bulk.json'
 
