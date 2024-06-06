@@ -1,3 +1,5 @@
+import pandas
+
 import config
 from config import *
 from src.data_download_unzip import download_contrataciones_zip, unzip
@@ -73,20 +75,22 @@ if __name__ == '__main__':
         logger.info("Fin de Ejecución")
     '''
     start = time.time()
+
     # Conexión a MongoDB
-    # Conexión a MongoDB
+    # # Conexión a MongoDB
     db = connect_to_mongodb()
     if db is not None:
         # Extracción de datos de Mongo y generación del archivo CSV
-        extract_participantes_proveedores(db)
+        # extract_participantes_proveedores(db)
         extract_licitacion(db)
-        extract_asignacion(db)
-        extract_comprador(db)
-        extract_documentos_tender(db)
-        extract_item_adq(db)
-        extract_item_tender(db)
+
+        # extract_asignacion(db)
+        # extract_comprador(db)
+        # extract_documentos_tender(db)
+        # extract_item_adq(db)
+        # extract_item_tender(db)
 
         # end = time.time()
         # logger.info(f"Tiempo de ejecución: {end - start}")
         # logger.info("Fin de Ejecución")
-    print(f"Tiempo de ejecución: {time.time() - start} segundos.")
+    # print(f"Tiempo de ejecución: {time.time() - start} segundos.")
