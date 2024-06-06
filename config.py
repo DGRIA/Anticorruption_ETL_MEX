@@ -58,7 +58,7 @@ class PathConfig:
 # Definición de constantes
 # MongoDB
 DB_NAME = 'Contratos_EDCA'
-COLLECTION_NAME = 'Contratos_ECDA_Bulk' # Cambiar a Contratos_ECDA_sample para probar con un archivo de menor tamaño
+COLLECTION_NAME = 'Contratos_ECDA_sample' # Cambiar a Contratos_ECDA_sample para probar con un archivo de menor tamaño
 DB_URL_DOCKER = 'mongodb://db:27017'
 DB_URL = 'mongodb://localhost:27017'
 # JSON Files
