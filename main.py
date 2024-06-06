@@ -1,16 +1,48 @@
-import config
-from config import *
-from src.data_download_unzip import download_contrataciones_zip, unzip
-from src.mongodb_utils import connect_to_mongodb, process_large_json
-import time
 import streamlit as st
 import subprocess
 import logging
-import config
 import sys
 import os
 import shutil
+from config import *
+import config
+from src.extraction_mongodb import extract_participantes_proveedores, extract_licitacion, extract_asignacion, extract_comprador, extract_documentos_tender, extract_item_adq
+from pymongo import MongoClient, errors
+import base64
+import pandas as pd
+import zipfile
 
+def create_download_link(filename):
+    def download():
+        # Create a new ZIP file
+        zip_filename = f"{filename}.zip"
+        with zipfile.ZipFile(zip_filename, 'w', zipfile.ZIP_DEFLATED) as zipf:
+            zipf.write(filename)
+
+        # Read the ZIP file into memory
+        with open(zip_filename, 'rb') as f:
+            bytes = f.read()
+            b64 = base64.b64encode(bytes).decode()  # some strings <-> bytes conversions necessary here
+            href = f'<a href="data:file/zip;base64,{b64}" download="{zip_filename}">Download {zip_filename}</a>'
+            return href
+
+    return download
+
+def create_download_link2(filenames, zip_filename):
+    def download():
+        # Create a new ZIP file
+        with zipfile.ZipFile(zip_filename, 'w', zipfile.ZIP_DEFLATED) as zipf:
+            for filename in filenames:
+                zipf.write(filename)
+
+        # Read the ZIP file into memory
+        with open(zip_filename, 'rb') as f:
+            bytes = f.read()
+            b64 = base64.b64encode(bytes).decode()  # some strings <-> bytes conversions necessary here
+            href = f'<a href="data:file/zip;base64,{b64}" download="{zip_filename}">Download {zip_filename}</a>'
+            return href
+
+    return download
 
 def show_intro():
     st.markdown((
@@ -32,13 +64,14 @@ def show_intro():
     inner_cols[2].image('docs/images/mottum2.png', use_column_width=True)
 
 
-def start_process():
+def start_download_and_unzip():
     cols_button = st.columns([1, 3, 1])  # Create three columns for the button
-    if cols_button[1].button('Pulsa para comenzar el proceso de descarga y limpieza de datos.',
-                             key='start_process_button'):
+    if cols_button[1].button('Pulsa para comenzar el proceso de descarga y extrracción local.', key='start_process_button'):
         st.session_state.button_pressed = True
-        st.session_state.main_running = True
-        # main()
+
+    if st.session_state.get('button_pressed'):
+        st.session_state.button_pressed = False  # Reset button state after the process starts
+        main()
 
     st.markdown("<br>", unsafe_allow_html=True)
     cols = st.columns([1, 1, 1])  # Create three columns
@@ -48,41 +81,119 @@ def start_process():
         "love</p>",
         unsafe_allow_html=True)  # Center the text, change the font, and add padding
     inner_cols[2].image('docs/images/mottum2.png', use_column_width=True)
+    # Create a button for each function
+
+def start_extraction():
+    try:
+        client = MongoClient('mongodb://localhost:27017', serverSelectionTimeoutMS=5000)
+        db = client['your_database_name']
+    except errors.ServerSelectionTimeoutError as err:
+        st.error("Failed to connect to MongoDB: %s" % err)
+
+    # Set a uniform width for all buttons
+    st.markdown("""
+    <style>
+    .stButton>button {
+        width: 100%;
+    }
+    </style>
+    """, unsafe_allow_html=True)
+
+    # Create a row of columns for the buttons
+    cols = st.columns(3)
+    cols2 = st.columns(3)
+    cols3 = st.columns(3)
+
+    # Create a button in each column
+    if cols[0].button('Extract Proveedores'):
+        extract_participantes_proveedores(db)
+
+    if cols[1].button('Extract Licitaciones'):
+        extract_licitacion(db)
+
+    if cols[2].button('Extract Asignaciones'):
+        extract_asignacion(db)
+
+    if cols2[0].button('Extract Compradores'):
+        extract_comprador(db)
+
+    if cols2[1].button('Extract Documentos Tender'):
+        extract_documentos_tender(db)
+
+    if cols2[2].button('Extract Item Adq'):
+        extract_item_adq(db)
+
+    if cols3[1].button('Extract All Tables'):
+        extract_participantes_proveedores(db)
+        extract_licitacion(db)
+        extract_asignacion(db)
+        extract_comprador(db)
+        extract_documentos_tender(db)
+        extract_item_adq(db)
+    
+    # Change the color of the 'Extract All Tables' button
 
 
-# TODO ADAPTAR A CONTRATACIONES
-# USAR LAS RUTAS PUESTAS EN CONFIG
-def show_finished():
-    if os.path.exists("data/merged_dataset.csv_files"):
-        st.markdown("<h2 style='text-align: center;'>¡El dataset está listo!</h2>", unsafe_allow_html=True)
-        cols = st.columns([1, 2, 1])
-        with open("data/merged_dataset.csv_files", "rb") as file:
-            button_clicked = cols[1].download_button(
-                label="Pulsa aquí para descargar el dataset completo.",
-                data=file,
-                file_name="merged_dataset.csv_files",
-                mime="text/csv_files",
-            )
-        st.markdown("<br>", unsafe_allow_html=True)
-        cols = st.columns([1, 1, 1])  # Create three columns
-        inner_cols = cols[2].columns([1, 1, 1, 1])  # Create two columns inside the middle column
-        inner_cols[0].markdown(
-            "<p style='text-align: center; font-family: Comic Sans MS; padding-top: 12px; white-space: nowrap;'>Made with love</p>",
-            unsafe_allow_html=True)  # Center the text, change the font, and add padding
-        inner_cols[2].image('docs/images/mottum2.png', use_column_width=True)  # Colocar la im
+    st.markdown("<br>", unsafe_allow_html=True)
+    cols4 = st.columns([1, 1, 1])  # Create three columns
+    inner_cols = cols4[2].columns([1, 1, 1, 1])  # Create two columns inside the middle column
+    inner_cols[0].markdown(
+        "<p style='text-align: center; font-family: Comic Sans MS; padding-top: 12px; white-space: nowrap;'>Made with love</p>",
+        unsafe_allow_html=True)  # Center the text, change the font, and add padding
+    inner_cols[2].image('docs/images/mottum2.png', use_column_width=True)  # Colocar la imagen
 
-    else:
-        st.markdown(
-            "<h2 style='text-align: center;'>Necesitas ejecutar el proceso antes de venir a esta pantalla.</h2>",
-            unsafe_allow_html=True)
-        st.markdown("<br>", unsafe_allow_html=True)
 
-        cols = st.columns([1, 1, 1])  # Create three columns
-        inner_cols = cols[2].columns([1, 1, 1, 1])  # Create two columns inside the middle column
-        inner_cols[0].markdown(
-            "<p style='text-align: center; font-family: Comic Sans MS; padding-top: 12px; white-space: nowrap;'>Made with love</p>",
-            unsafe_allow_html=True)  # Center the text, change the font, and add padding
-        inner_cols[2].image('docs/images/mottum2.png', use_column_width=True)
+def download_results():
+    st.markdown("""
+    <style>
+    .stButton>button {
+        width: 100%;
+    }
+    </style>
+    """, unsafe_allow_html=True)
+
+    # Create a row of columns for the buttons
+    cols = [st.columns(2) for _ in range(3)]
+
+    filenames = [
+        'Participantes Proveedores',
+        'Licitaciones',
+        'Asignaciones',
+        'Compradores',
+        'Documentos Tender',
+        'Items Adquisiciones',
+    ]
+    # Create a download button for each dataset
+    filelinks = [
+        'data/Processed/csv_files/participantes_proveedores_v2_Raw.csv',
+        'data/Processed/csv_files/licitacion_data_Raw.csv',
+        'data/Processed/csv_files/asignacion_data_Raw.csv',
+        'data/Processed/csv_files/comprador_data_Raw.csv',
+        'data/Processed/csv_files/documentos_tender_data_V2_Raw.csv',
+        'data/Processed/csv_files/items_adq_data_Raw.csv',
+    ]
+
+    for i, (filename, filelink) in enumerate(zip(filenames, filelinks)):
+        if cols[i // 2][i % 2].button(f'Download {filename}'):
+            href = create_download_link(filelink)()
+            st.markdown(href, unsafe_allow_html=True)
+
+    if st.button('Download All'):
+        href = create_download_link2(filelinks, 'all_data.zip')()
+        st.markdown(href, unsafe_allow_html=True)
+
+    # Rest of your code...  
+        
+    # Change the color of the 'Extract All Tables' button
+
+
+    st.markdown("<br>", unsafe_allow_html=True)
+    cols4 = st.columns([1, 1, 1])  # Create three columns
+    inner_cols = cols4[2].columns([1, 1, 1, 1])  # Create two columns inside the middle column
+    inner_cols[0].markdown(
+        "<p style='text-align: center; font-family: Comic Sans MS; padding-top: 12px; white-space: nowrap;'>Made with love</p>",
+        unsafe_allow_html=True)  # Center the text, change the font, and add padding
+    inner_cols[2].image('docs/images/mottum2.png', use_column_width=True) 
 
 
 def clear_directory(directory):
@@ -101,23 +212,21 @@ logger = logging.getLogger("Contrataciones")
 logger.setLevel(logging.INFO)
 
 
-# TODO NO ES NECESARIO CREAR LOS DIRECTORIOS
-# TODO USAR LAS RUTAS DE CONFIG
 def main():
-    if not os.path.exists(path_config.data_path):
-        os.makedirs(path_config.data_path)
+    if not os.path.exists(config.path_config.data_path):
+        os.makedirs(config.path_config.data_path)
         logger.info("Directory 'data' missing, creating 'data' directory.")
-    if not os.path.exists(path_config.contrataciones_raw_unzip_path):
-        os.makedirs(path_config.contrataciones_raw_unzip_path)
-        logger.info("Directory %s missing, creating %s", path_config.contrataciones_raw_unzip_path,
-                    path_config.contrataciones_raw_unzip_path)
+    if not os.path.exists(config.path_config.contrataciones_raw_unzip_path):
+        os.makedirs(config.path_config.contrataciones_raw_unzip_path)
+        logger.info("Directory %s missing, creating %s", config.path_config.contrataciones_raw_unzip_path,
+                    config.path_config.contrataciones_raw_unzip_path)
 
     clear_directory(config.path_config.contrataciones_raw_unzip_path)
 
     with st.spinner(
             'Ejecutando scripts... Esto puede tardar unos minutos. No cambie de pestaña hasta que el proceso haya acabado!'):
         logger.info("Inicio de Ejecución")
-        scripts = ["src/data_download_unzip.py", "src/extraction_mongodb.py"]
+        scripts = ["src/data_download_unzip.py"]
         progress_bar = st.progress(0)  # Initialize progress bar
         for i, script in enumerate(scripts):
             result = subprocess.run([sys.executable, script], check=False, text=True, capture_output=True)
@@ -125,8 +234,8 @@ def main():
             progress_bar.progress(progress_percent)  # Update progress bar
             if result.returncode != 0:
                 logger.error(f"{script} failed with error:\n{result.stderr}")
+                st.error(f"{script} failed with error:\n{result.stderr}")
                 break
-
 
 if __name__ == '__main__':
     st.markdown('''
@@ -162,15 +271,17 @@ if __name__ == '__main__':
 
     # Create navigation menu
     st.session_state.page = st.radio('Process',
-                                     ['1. Introducción', '2. Descarga y unzip', '3. Extracción de datos de MongoDB'])
+                                     ['1. Introducción', '2. Descarga y unzip', '3. Extracción de datos de MongoDB', '4. Descarga de resultados'])
 
     # Display the selected page
     if st.session_state.page == '1. Introducción':
         show_intro()
     elif st.session_state.page == '2. Descarga y unzip':
-        start_process()
+        start_download_and_unzip()
     elif st.session_state.page == '3. Extracción de datos de MongoDB':
-        show_finished()
+        start_extraction()
+    elif st.session_state.page == '4. Descarga de resultados':
+        download_results()
 
     st.markdown(
         """

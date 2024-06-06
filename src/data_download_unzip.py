@@ -1,10 +1,30 @@
 from tqdm import tqdm
 import urllib3
-from config import *
 import requests
 from zipfile import ZipFile
 import os
 import logging
+import sys
+# Save the original working directory
+
+current_file_path = os.path.abspath(__file__)
+
+# Get the parent directory of the current file
+parent_dir = os.path.dirname(current_file_path)
+
+# Get the base directory of the repository
+base_dir = os.path.dirname(parent_dir)
+
+config_path = os.path.join(base_dir, 'config.py')
+
+# Add the base directory to the system path
+sys.path.append(base_dir)
+
+# Now you can import the config module
+from config import *
+
+print(base_dir)
+
 
 # Deshabilitar los warnings de certificados SSL
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
@@ -64,3 +84,6 @@ def check_path(path):
         logger.info("El archivo ya existe")
     else:
         logger.info("El archivo no existe")
+        
+download_contrataciones_zip(url=URL_CONTRATACIONES)
+unzip(zip_file_path=RAW_DATA_PATH, unzip_path=UNZIP_DATA_PATH)
