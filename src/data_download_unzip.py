@@ -1,6 +1,6 @@
 from tqdm import tqdm
 import urllib3
-from config import logger_config, path_config
+from config import *
 import requests
 from zipfile import ZipFile
 import os
@@ -14,7 +14,7 @@ logger = logging.getLogger("Contrataciones")
 logger.setLevel(logging.INFO)
 
 # Definición de las rutas de los archivos
-URL_CONTRATACIONES = path_config.contrataciones_url
+URL_CONTRATACIONES = CONTRATACIONES_URL
 RAW_DATA_PATH = path_config.contrataciones_raw_path
 UNZIP_DATA_PATH = path_config.contrataciones_raw_unzip_path
 
@@ -55,7 +55,8 @@ def unzip(zip_file_path=RAW_DATA_PATH, unzip_path=UNZIP_DATA_PATH):
         logger.info(f"Archivo extraído: {file}")
     else:
         logger.error(
-            f"Error: No se encontró el archivo '{zip_file_path}'. Asegúrate de que la ruta y el nombre del archivo sean correctos.")
+            f"Error: No se encontró el archivo '{zip_file_path}'. Asegúrate de que la ruta y el nombre del archivo "
+            f"sean correctos.")
 
 
 def check_path(path):
