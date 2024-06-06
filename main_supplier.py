@@ -85,10 +85,7 @@ if __name__ == '__main__':
         extract_documentos_tender(db)
         extract_item_adq(db)
         extract_item_tender(db)
-        # print("Conectado a MongoDB")
-        # print("Revisado la colección")
-        # process_large_json(
-        #     config.path_config.contrataciones_raw_unzip_path + 'Contrataciones.Sample_Contratos_EDCA.json')  # Tarda mas de 20 minutos
+
         # end = time.time()
         # logger.info(f"Tiempo de ejecución: {end - start}")
         # logger.info("Fin de Ejecución")
