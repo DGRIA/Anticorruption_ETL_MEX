@@ -6,11 +6,13 @@ import os
 import shutil
 from config import *
 import config
-from src.extraction_mongodb import extract_participantes_proveedores, extract_licitacion, extract_asignacion, extract_comprador, extract_documentos_tender, extract_item_adq
+from src.extraction_mongodb import extract_participantes_proveedores, extract_licitacion, extract_asignacion, \
+    extract_comprador, extract_documentos_tender, extract_item_adq
 from pymongo import MongoClient, errors
 import base64
 import pandas as pd
 import zipfile
+
 
 def create_download_link(filename):
     def download():
@@ -28,6 +30,7 @@ def create_download_link(filename):
 
     return download
 
+
 def create_download_link2(filenames, zip_filename):
     def download():
         # Create a new ZIP file
@@ -43,6 +46,7 @@ def create_download_link2(filenames, zip_filename):
             return href
 
     return download
+
 
 def show_intro():
     st.markdown((
@@ -66,7 +70,8 @@ def show_intro():
 
 def start_download_and_unzip():
     cols_button = st.columns([1, 3, 1])  # Create three columns for the button
-    if cols_button[1].button('Pulsa para comenzar el proceso de descarga y extrracción local.', key='start_process_button'):
+    if cols_button[1].button('Pulsa para comenzar el proceso de descarga y extrracción local.',
+                             key='start_process_button'):
         st.session_state.button_pressed = True
 
     if st.session_state.get('button_pressed'):
@@ -82,6 +87,7 @@ def start_download_and_unzip():
         unsafe_allow_html=True)  # Center the text, change the font, and add padding
     inner_cols[2].image('docs/images/mottum2.png', use_column_width=True)
     # Create a button for each function
+
 
 def start_extraction():
     try:
@@ -130,9 +136,8 @@ def start_extraction():
         extract_comprador(db)
         extract_documentos_tender(db)
         extract_item_adq(db)
-    
-    # Change the color of the 'Extract All Tables' button
 
+    # Change the color of the 'Extract All Tables' button
 
     st.markdown("<br>", unsafe_allow_html=True)
     cols4 = st.columns([1, 1, 1])  # Create three columns
@@ -161,16 +166,18 @@ def download_results():
         'Asignaciones',
         'Compradores',
         'Documentos Tender',
+        'Items Tender',
         'Items Adquisiciones',
     ]
     # Create a download button for each dataset
     filelinks = [
-        'data/Processed/csv_files/participantes_proveedores_v2_Raw.csv',
-        'data/Processed/csv_files/licitacion_data_Raw.csv',
-        'data/Processed/csv_files/asignacion_data_Raw.csv',
-        'data/Processed/csv_files/comprador_data_Raw.csv',
-        'data/Processed/csv_files/documentos_tender_data_V2_Raw.csv',
-        'data/Processed/csv_files/items_adq_data_Raw.csv',
+        'data/Processed/csv_files/participantes_proveedores.csv',
+        'data/Processed/csv_files/licitacion_data.csv',
+        'data/Processed/csv_files/asignacion_data.csv',
+        'data/Processed/csv_files/comprador_sesna_data.csv',
+        'data/Processed/csv_files/documentos_tender_sesna.csv',
+        'data/Processed/csv_files/items_adq_sesna_data.csv',
+        'data/Processed/csv_files/tender_items_sesna_data.csv',
     ]
 
     for i, (filename, filelink) in enumerate(zip(filenames, filelinks)):
@@ -183,9 +190,8 @@ def download_results():
         st.markdown(href, unsafe_allow_html=True)
 
     # Rest of your code...  
-        
-    # Change the color of the 'Extract All Tables' button
 
+    # Change the color of the 'Extract All Tables' button
 
     st.markdown("<br>", unsafe_allow_html=True)
     cols4 = st.columns([1, 1, 1])  # Create three columns
@@ -193,7 +199,7 @@ def download_results():
     inner_cols[0].markdown(
         "<p style='text-align: center; font-family: Comic Sans MS; padding-top: 12px; white-space: nowrap;'>Made with love</p>",
         unsafe_allow_html=True)  # Center the text, change the font, and add padding
-    inner_cols[2].image('docs/images/mottum2.png', use_column_width=True) 
+    inner_cols[2].image('docs/images/mottum2.png', use_column_width=True)
 
 
 def clear_directory(directory):
@@ -225,7 +231,7 @@ def main():
 
     with st.spinner(
             'Ejecutando scripts... Esto puede tardar unos minutos. No cambie de pestaña hasta que el proceso haya acabado!'):
-        logger.info("Inicio de Ejecución")
+        logger.info("Inicio de Descarga y Extracción de datos")
         scripts = ["src/data_download_unzip.py"]
         progress_bar = st.progress(0)  # Initialize progress bar
         for i, script in enumerate(scripts):
@@ -236,6 +242,7 @@ def main():
                 logger.error(f"{script} failed with error:\n{result.stderr}")
                 st.error(f"{script} failed with error:\n{result.stderr}")
                 break
+
 
 if __name__ == '__main__':
     st.markdown('''
@@ -271,7 +278,8 @@ if __name__ == '__main__':
 
     # Create navigation menu
     st.session_state.page = st.radio('Process',
-                                     ['1. Introducción', '2. Descarga y unzip', '3. Extracción de datos de MongoDB', '4. Descarga de resultados'])
+                                     ['1. Introducción', '2. Descarga y unzip', '3. Extracción de datos de MongoDB',
+                                      '4. Descarga de resultados'])
 
     # Display the selected page
     if st.session_state.page == '1. Introducción':
