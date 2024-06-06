@@ -11,6 +11,22 @@ mongo_logger = logging.getLogger("pymongo")
 mongo_logger.setLevel(logging.WARNING)
 
 
+def clean_licitacion(df_licitacion):
+    df_licitacion['award_end_date'] = pd.to_datetime(df_licitacion['award_end_date'], errors='coerce')
+    sorted_df = df_licitacion.sort_values(['cve_expediente', 'award_end_date'], ascending=[True, False])
+    most_recent_dates = sorted_df.groupby('cve_expediente')['award_end_date'].max().reset_index()
+    df_licitacion = pd.merge(most_recent_dates, sorted_df, on=['cve_expediente', 'award_end_date'], how='inner')
+
+    status_priority = {'complete': 1, 'unsuccessful': 2, 'active': 3}
+
+    df_licitacion['status_priority'] = df_licitacion['status'].map(status_priority)
+    df_licitacion = df_licitacion.sort_values(by=['cve_expediente', 'status_priority'])
+    df_licitacion = df_licitacion.drop_duplicates(subset='cve_expediente', keep='first')
+    df_licitacion = df_licitacion.drop(columns=['status_priority'])
+
+    return df_licitacion
+
+
 def extract_participantes_proveedores(db):
     """Extrae los datos de Participantes_Proveedores y los guarda en un archivo csv_files."""
     try:
@@ -74,33 +90,33 @@ def extract_licitacion(db):
         consulta_actualizada = db[COLLECTION_NAME].find({}, {})
 
         datos = []
-        contrato_dict = {
-            'cve_expediente': '',
-            'procurementMethod': '',
-            'procurementMethod_rationale': '',
-            'status': '',
-            'title': '',
-            'description': '',
-            'has_enquiries': '',
-            'number_tenderers': '',
-            'tender_start_date': '',
-            'tender_end_date': '',
-            'award_start_date': '',
-            'award_end_date': '',
-            'enquiry_start_date': '',
-            'enquiry_end_date': '',
-            'procuring_entity_id': '',
-            'procuring_entity_name': '',
-            'value_currency_tender': '',
-            'value_amount_tender': '',
-            'award_criteria': '',
-            'framework_agreement': '',
-            'framework_agreement_platform': '',
-            'framework_agreement_title': '',
-            'submission_method': '',
-        }
-        for contrato in consulta_actualizada:
 
+        for contrato in consulta_actualizada:
+            contrato_dict = {
+                'cve_expediente': '',
+                'procurementMethod': '',
+                'procurementMethod_rationale': '',
+                'status': '',
+                'title': '',
+                'description': '',
+                'has_enquiries': '',
+                'number_tenderers': '',
+                'tender_start_date': '',
+                'tender_end_date': '',
+                'award_start_date': '',
+                'award_end_date': '',
+                'enquiry_start_date': '',
+                'enquiry_end_date': '',
+                'procuring_entity_id': '',
+                'procuring_entity_name': '',
+                'value_currency_tender': '',
+                'value_amount_tender': '',
+                'award_criteria': '',
+                'framework_agreement': '',
+                'framework_agreement_platform': '',
+                'framework_agreement_title': '',
+                'submission_method': '',
+            }
             try:
                 tender = contrato.get('releases', [{}])[0].get('tender', {})
                 contrato_dict['cve_expediente'] = tender.get('id', '')  # id
@@ -142,8 +158,14 @@ def extract_licitacion(db):
             df_licitacion.to_csv(path_config.contrataciones_processed_csv_path + 'licitacion_data.csv', index=False,
                                  encoding='utf-8')
             logger.info("Exportación de Licitación a archivo parquet")
-            df_licitacion.to_parquet(path_config.contrataciones_processed_parquet_path + 'licitacion_data.parquet')
+            # TODO Solventar la exportacion a parquet
+            # He probado con las lineas de abajo pero sigue sin funcionar
+            # df_licitacion['value_amount_tender'] = pd.to_numeric(df_licitacion['value_amount_tender'], errors='coerce')
+            # df_licitacion['framework_agreement'] = df_licitacion['framework_agreement'].astype('boolean')
+            # df_licitacion.to_parquet(path_config.contrataciones_processed_parquet_path + 'licitacion_data.parquet')
+
             logger.info("Extracción de datos de licitación finalizada.")
+            return df_licitacion
         else:
             logger.warning("No se encontraron datos para extraer de licitación.")
 
@@ -190,11 +212,11 @@ def extract_asignacion(db):
         logger.info("El dataframe de Asignación tiene el siguiente tamaño: %s", df_asignacion.shape)
         logger.info("Exportando Asignación a un archivo csv")
         df_asignacion.to_csv(
-            path_config.contrataciones_processed_csv_path + 'participantes_proveedores.csv',
+            path_config.contrataciones_processed_csv_path + 'asignacion_data.csv',
             index=False, encoding='utf-8')
         logger.info("Exportación de Asignación a archivo parquet")
         df_asignacion.to_parquet(
-            path_config.contrataciones_processed_parquet_path + 'participantes_proveedores.parquet')
+            path_config.contrataciones_processed_parquet_path + 'asignacion_data.parquet')
         logger.info("Extracción de Participantes_Proveedores finalizada.")
     else:
         logger.warning("No se encontraron datos para extraer.")
@@ -372,27 +394,6 @@ def extract_item_tender(db):
 
 
 # TODO SOLVENTAR DEVUELVE UNA SOLA FILA TRAS EL DROP
-def clean_licitacion(df_licitacion):
-    df_licitacion = df_licitacion.astype({'cve_expediente': 'str'})
-    df_licitacion['award_end_date'] = pd.to_datetime(df_licitacion['award_end_date'], errors='coerce')
-    sorted_df = df_licitacion.sort_values(['cve_expediente', 'award_end_date'], ascending=[True, False])
-    print("sorted: ", sorted_df.describe())
-    most_recent_dates = sorted_df.groupby('cve_expediente')['award_end_date'].max().reset_index()
-    print("most_recent", most_recent_dates)
-    df_licitacion = pd.merge(most_recent_dates, sorted_df, on=['cve_expediente', 'award_end_date'], how='inner')
-    print("merged: ", df_licitacion.describe())
-    # df_licitacion = df_licitacion.groupby('cve_expediente')['status'].agg(lambda x: list(set(x))).reset_index()
-
-    status_priority = {'complete': 1, 'unsuccessful': 2, 'active': 3}
-
-    df_licitacion['status_priority'] = df_licitacion['status'].map(status_priority)
-    df_licitacion = df_licitacion.sort_values(by=['cve_expediente', 'status_priority'])
-    print("sorted: ", df_licitacion.describe())
-    df_licitacion = df_licitacion.drop_duplicates(subset='cve_expediente', keep='first')
-    print("dropped: ", df_licitacion.describe())
-    df_licitacion = df_licitacion.drop(columns=['status_priority'])
-
-    return df_licitacion
 
 
 def clean_asignacion(df_asignacion):
