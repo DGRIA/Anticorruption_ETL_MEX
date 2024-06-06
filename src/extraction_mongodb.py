@@ -229,15 +229,118 @@ def extract_comprador(db):
 
     print(df_comprador.shape)
 
-# Documentos TENDER
-# ITEM_ADQ
-# ITEM_TENDER
 
-# Este bloque solo se ejecuta si ejecutas este script directamente
-# if __name__ == "__main__":
-#     # Conexión a MongoDB
-#     db = connect_to_mongodb()
-#     if db is not None:
-#         # Extracción de datos y generación del archivo CSV
-#         extract_participantes_proveedores(db)
-#         extract_licitacion_data(db)
+# Documentos TENDER
+def extract_documentos_tender(db):
+    consulta_actualizada = db[COLLECTION_NAME].find({}, {})
+
+    # Creando una lista de diccionarios para facilitar la creación del dataframe
+    datos = []
+    for contrato in consulta_actualizada:
+        # Accede a cada release. Asumimos que cada contrato tiene al menos un release.
+        releases = contrato.get('releases', [])
+        for release in releases:
+            # Accede a los documentos dentro de 'tender', si existen
+            tender = release.get('tender', {})
+            documents = tender.get('documents', [])
+
+            if documents:
+                for document in documents:
+                    contrato_dict = {
+                        'cve_expediente': tender.get('id', ''),
+                        'docs_title_tender': document.get('title', ''),
+                        'docs_type_tender': document.get('documentType', ''),
+                        'docs_language_tender': document.get('language', ''),
+                        'docs_date_published_tender': document.get('datePublished', ''),
+                        'docs_id_tender': document.get('id', ''),
+                        'docs_format_tender': document.get('format', ''),
+                        'docs_description_tender': document.get('description', ''),
+                        'docs_url_tender': document.get('url', '')
+                    }
+                    datos.append(contrato_dict)
+            else:
+                # Create a record with empty document fields if there are no documents
+                contrato_dict = {
+                    'cve_expediente': tender.get('id', ''),
+                    'docs_title_tender': '',
+                    'docs_type_tender': '',
+                    'docs_language_tender': '',
+                    'docs_date_published_tender': '',
+                    'docs_id_tender': '',
+                    'docs_format_tender': '',
+                    'docs_description_tender': '',
+                    'docs_url_tender': ''
+                }
+                datos.append(contrato_dict)
+
+    # Creando el dataframe de documentos tender
+    df_documentos_tender = pd.DataFrame(datos)
+
+    # Exportando el dataframe a un archivo csv
+    df_documentos_tender.to_csv(path_config.contrataciones_processed + 'documentos_tender_sesna_data_V2.csv',
+                                index=False, encoding='utf-8')
+    print("Proceso terminado. \n     El dataset de Documentos Tender tiene el siguiente tamaño: (filas x columnas)")
+    print(df_documentos_tender.shape)
+
+
+# ITEM_ADQ
+def extract_item_adq(db):
+    consulta_actualizada = db[COLLECTION_NAME].find({}, {})
+
+    # Creando una lista de diccionarios para facilitar la creación del dataframe
+    datos = []
+    for contrato in consulta_actualizada:
+        for award in contrato.get('releases', [{}])[0].get('awards', [{}]):
+            for item in award.get('items', []):
+                contrato_dict = {
+                    'cve_expediente': contrato.get('releases', [{}])[0].get('tender', {}).get('id', ''),  # id
+                    'cve_contrato': award.get('id', ''),
+                    'items_unit_val_currency_awards': item.get('unit', {}).get('value', {}).get('currency', ''),
+                    'items_unit_val_amount_awards': item.get('unit', {}).get('value', {}).get('amount', ''),
+                    'items_unit_name_awards': item.get('unit', {}).get('name', ''),
+                    'items_classion.uri': item.get('classification', {}).get('uri', ''),
+                    'items_classi_scheme_awards': item.get('classification', {}).get('scheme', ''),
+                    'items_class_id_awards': item.get('classification', {}).get('id', ''),
+                    'items_class_description_awards': item.get('classification', {}).get('description', ''),
+                    'items_quantity_awards': item.get('quantity', ''),
+                    'items_id_awards': item.get('id', ''),
+                    'items_description_awards': item.get('description', ''),
+                }
+                datos.append(contrato_dict)
+
+    # Creando el dataframe de ITEMS
+    df_items = pd.DataFrame(datos)
+
+    # Exportando el dataframe a un archivo csv
+    df_items.to_csv(path_config.contrataciones_processed + 'items_adq_sesna_data.csv', index=False, encoding='utf-8')
+    print("Proceso terminado. \n     El dataset de Items tiene el siguiente tamaño: (filas x columnas)")
+
+    print(df_items.shape)
+
+
+# ITEM_TENDER TODO: Revisar
+def extract_item_tender(db):
+    consulta_actualizada = db[COLLECTION_NAME].find({}, {})
+
+    # Creando una lista de diccionarios para facilitar la creación del dataframe
+    datos = []
+    for contrato in consulta_actualizada:
+        for item in contrato.get('releases', [{}])[0].get('tender', {}).get('items', []):
+            contrato_dict = {
+                'cve_expediente': contrato.get('releases', [{}])[0].get('tender', {}).get('id', ''),
+                'items_unit_name_tender': item.get('unit', {}).get('name', ''),
+                'items_class_id_tender': item.get('classification', {}).get('id', ''),
+                'items_class_description_tender': item.get('classification', {}).get('description', ''),
+                'items_quantity_tender': item.get('quantity', ''),
+                'items_id_tender': item.get('id', ''),
+                'items_description_tender': item.get('description', ''),
+            }
+            datos.append(contrato_dict)
+
+    # Creando el dataframe de Tender Items
+    df_tender_items = pd.DataFrame(datos)
+
+    # Exportando el dataframe a un archivo csv
+    df_tender_items.to_csv(path_config.contrataciones_processed + 'tender_items_sesna_data.csv', index=False,
+                           encoding='utf-8')
+    print("Proceso terminado. \n     El dataset de Tender Items tiene el siguiente tamaño: (filas x columnas)")
