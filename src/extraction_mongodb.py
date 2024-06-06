@@ -11,9 +11,8 @@ mongo_logger = logging.getLogger("pymongo")
 mongo_logger.setLevel(logging.WARNING)
 
 
-# TODO Solventar el problemas de las rutas
 def extract_participantes_proveedores(db):
-    """Extrae los datos de Participantes_Proveedores y los guarda en un archivo csv."""
+    """Extrae los datos de Participantes_Proveedores y los guarda en un archivo csv_files."""
     try:
         logger.info("Iniciando extracción de Participantes Proveedores...")
         # Realiza la consulta a la base de datos
@@ -51,16 +50,22 @@ def extract_participantes_proveedores(db):
         df_participantes_proveedores = pd.DataFrame(datos)
         # Verifica si se obtuvieron datos
         if not df_participantes_proveedores.empty:
+            logger.info("El dataframe de Participantes_Proveedores tiene el siguiente tamaño: %s",
+                        df_participantes_proveedores.shape)
+            logger.info("Exportando Participantes_Proveedores a un archivo csv")
             df_participantes_proveedores.to_csv(
-                path_config.contrataciones_processed_raw_path + 'participantes_proveedores_raw.csv',
+                path_config.contrataciones_processed_csv_path + 'participantes_proveedores.csv',
                 index=False, encoding='utf-8')
-            logger.info("Extracción de Participantes_Proveedores finalizada.")
+            logger.info("Exportación de Participantes_Proveedores a archivo parquet")
+            df_participantes_proveedores.to_parquet(
+                path_config.contrataciones_processed_parquet_path + 'participantes_proveedores.parquet')
         else:
             logger.warning("No se encontraron datos para extraer.")
     except Exception as e:
         logger.error(f"Error durante la extracción de Participantes_Proveedores: {e}")
 
 
+# TODO HACER CLEANING
 def extract_licitacion(db):
     """Extrae los datos de licitación y los guarda en un archivo CSV."""
     try:
@@ -128,9 +133,16 @@ def extract_licitacion(db):
 
         df_licitacion = pd.DataFrame(datos)
 
+        # Data cleaning
+        df_licitacion = clean_licitacion(df_licitacion)
+
         if not df_licitacion.empty:
-            df_licitacion.to_csv(path_config.contrataciones_raw_path + 'licitacion_data_raw.csv', index=False,
+            logger.info("El dataframe de Licitación tiene el siguiente tamaño: %s", df_licitacion.shape)
+            logger.info("Exportando Licitación a un archivo csv")
+            df_licitacion.to_csv(path_config.contrataciones_processed_csv_path + 'licitacion_data.csv', index=False,
                                  encoding='utf-8')
+            logger.info("Exportación de Licitación a archivo parquet")
+            df_licitacion.to_parquet(path_config.contrataciones_processed_parquet_path + 'licitacion_data.parquet')
             logger.info("Extracción de datos de licitación finalizada.")
         else:
             logger.warning("No se encontraron datos para extraer de licitación.")
@@ -173,18 +185,19 @@ def extract_asignacion(db):
             }
             datos.append(contrato_dict)
     df_asignacion = pd.DataFrame(datos)
+    df_asignacion = clean_asignacion(df_asignacion)
     if not df_asignacion.empty:
+        logger.info("El dataframe de Asignación tiene el siguiente tamaño: %s", df_asignacion.shape)
+        logger.info("Exportando Asignación a un archivo csv")
         df_asignacion.to_csv(
-            path_config.contrataciones_processed_raw_path + 'participantes_proveedores_raw.csv',
+            path_config.contrataciones_processed_csv_path + 'participantes_proveedores.csv',
             index=False, encoding='utf-8')
+        logger.info("Exportación de Asignación a archivo parquet")
+        df_asignacion.to_parquet(
+            path_config.contrataciones_processed_parquet_path + 'participantes_proveedores.parquet')
         logger.info("Extracción de Participantes_Proveedores finalizada.")
     else:
         logger.warning("No se encontraron datos para extraer.")
-    # Exportando el dataframe a un archivo csv
-    df_asignacion.to_csv(path_config.contrataciones_processed + 'asignacion_sesna_data.csv', index=False,
-                         encoding='utf-8')
-    print("Proceso terminado. \n     El dataset de Asignación tiene el siguiente tamaño: (filas x columnas)")
-    print(df_asignacion.shape)
 
 
 # Comprador
@@ -222,14 +235,16 @@ def extract_comprador(db):
     # Creando el dataframe de comprador
     df_comprador = pd.DataFrame(datos)
 
-    # Exportando el dataframe a un archivo csv
-    df_comprador.to_csv(path_config.contrataciones_processed + 'comprador_sesna_data.csv', index=False,
+    # Exportando el dataframe a un archivo csv_files
+    logger.info("El dataframe de Comprador tiene el siguiente tamaño: %s", df_comprador.shape)
+    logger.info("Exportando Comprador a un archivo csv")
+    df_comprador.to_csv(path_config.contrataciones_processed_csv_path + 'comprador_sesna_data.csv', index=False,
                         encoding='utf-8')
-    print("Proceso terminado. \n     El dataset de Comprador tiene el siguiente tamaño: (filas x columnas)")
+    logger.info("Exportación de Comprador a archivo parquet")
+    df_comprador.to_parquet(path_config.contrataciones_processed_parquet_path + 'comprador_sesna_data.parquet')
 
-    print(df_comprador.shape)
 
-
+# TODO HACER CLEANING
 # Documentos TENDER
 def extract_documentos_tender(db):
     consulta_actualizada = db[COLLECTION_NAME].find({}, {})
@@ -275,12 +290,15 @@ def extract_documentos_tender(db):
 
     # Creando el dataframe de documentos tender
     df_documentos_tender = pd.DataFrame(datos)
-
-    # Exportando el dataframe a un archivo csv
-    df_documentos_tender.to_csv(path_config.contrataciones_processed + 'documentos_tender_sesna_data_V2.csv',
+    df_documentos_tender = clean_documentos_tender(df_documentos_tender)
+    # Exportando el dataframe a un archivo csv_files
+    logger.info("El dataframe de Documentos Tender tiene el siguiente tamaño: %s", df_documentos_tender.shape)
+    logger.info("Exportando Documentos Tender a un archivo csv")
+    df_documentos_tender.to_csv(path_config.contrataciones_processed_csv_path + 'documentos_tender_sesna_data.csv',
                                 index=False, encoding='utf-8')
-    print("Proceso terminado. \n     El dataset de Documentos Tender tiene el siguiente tamaño: (filas x columnas)")
-    print(df_documentos_tender.shape)
+    logger.info("Exportación de Documentos Tender a archivo parquet")
+    df_documentos_tender.to_parquet(
+        path_config.contrataciones_processed_parquet_path + 'documentos_tender_sesna_data.parquet')
 
 
 # ITEM_ADQ
@@ -311,14 +329,16 @@ def extract_item_adq(db):
     # Creando el dataframe de ITEMS
     df_items = pd.DataFrame(datos)
 
-    # Exportando el dataframe a un archivo csv
-    df_items.to_csv(path_config.contrataciones_processed + 'items_adq_sesna_data.csv', index=False, encoding='utf-8')
-    print("Proceso terminado. \n     El dataset de Items tiene el siguiente tamaño: (filas x columnas)")
+    # Exportando el dataframe a un archivo csv_files
+    logger.info("El dataframe de Items tiene el siguiente tamaño: %s", df_items.shape)
+    logger.info("Exportando Item Adquisición a un archivo csv")
+    df_items.to_csv(path_config.contrataciones_processed_csv_path + 'items_adq_sesna_data.csv', index=False,
+                    encoding='utf-8')
+    logger.info("Exportación de Item Adquisición a archivo parquet")
+    df_items.to_parquet(path_config.contrataciones_processed_parquet_path + 'items_adq_sesna_data.parquet')
 
-    print(df_items.shape)
 
-
-# ITEM_TENDER TODO: Revisar
+# ITEM_TENDER
 def extract_item_tender(db):
     consulta_actualizada = db[COLLECTION_NAME].find({}, {})
 
@@ -340,7 +360,53 @@ def extract_item_tender(db):
     # Creando el dataframe de Tender Items
     df_tender_items = pd.DataFrame(datos)
 
-    # Exportando el dataframe a un archivo csv
-    df_tender_items.to_csv(path_config.contrataciones_processed + 'tender_items_sesna_data.csv', index=False,
+    # Exportando el dataframe a un archivo csv_files
+    logger.info("El dataframe de Tender Items tiene el siguiente tamaño: %s", df_tender_items.shape)
+    logger.info("Exportando Item Tender a un archivo csv_files")
+    df_tender_items.to_csv(path_config.contrataciones_processed_csv_path + 'tender_items_sesna_data.csv',
+                           index=False,
                            encoding='utf-8')
-    print("Proceso terminado. \n     El dataset de Tender Items tiene el siguiente tamaño: (filas x columnas)")
+    logger.info("Exportación de Item Tender a archivo parquet")
+    df_tender_items.to_parquet(path_config.contrataciones_processed_parquet_path + 'tender_items_sesna_data.parquet')
+    logger.info("Extracción de Tender Items finalizada.")
+
+
+# TODO SOLVENTAR DEVUELVE UNA SOLA FILA TRAS EL DROP
+def clean_licitacion(df_licitacion):
+    df_licitacion = df_licitacion.astype({'cve_expediente': 'str'})
+    df_licitacion['award_end_date'] = pd.to_datetime(df_licitacion['award_end_date'], errors='coerce')
+    sorted_df = df_licitacion.sort_values(['cve_expediente', 'award_end_date'], ascending=[True, False])
+    print("sorted: ", sorted_df.describe())
+    most_recent_dates = sorted_df.groupby('cve_expediente')['award_end_date'].max().reset_index()
+    print("most_recent", most_recent_dates)
+    df_licitacion = pd.merge(most_recent_dates, sorted_df, on=['cve_expediente', 'award_end_date'], how='inner')
+    print("merged: ", df_licitacion.describe())
+    # df_licitacion = df_licitacion.groupby('cve_expediente')['status'].agg(lambda x: list(set(x))).reset_index()
+
+    status_priority = {'complete': 1, 'unsuccessful': 2, 'active': 3}
+
+    df_licitacion['status_priority'] = df_licitacion['status'].map(status_priority)
+    df_licitacion = df_licitacion.sort_values(by=['cve_expediente', 'status_priority'])
+    print("sorted: ", df_licitacion.describe())
+    df_licitacion = df_licitacion.drop_duplicates(subset='cve_expediente', keep='first')
+    print("dropped: ", df_licitacion.describe())
+    df_licitacion = df_licitacion.drop(columns=['status_priority'])
+
+    return df_licitacion
+
+
+def clean_asignacion(df_asignacion):
+    df_asignacion['contract_start_date'] = pd.to_datetime(df_asignacion['contract_start_date'], errors='coerce')
+    df_asignacion = df_asignacion.sort_values(['cve_contrato', 'contract_start_date'], ascending=[True, False])
+    df_asignacion = df_asignacion.drop_duplicates(subset=['cve_contrato'], keep='first')
+
+    return df_asignacion
+
+
+def clean_documentos_tender(df_documentos_tender):
+    df_documentos_tender['docs_date_published_tender'] = pd.to_datetime(
+        df_documentos_tender['docs_date_published_tender'])
+    df_documentos_tender = df_documentos_tender.sort_values(by='docs_date_published_tender', ascending=True)
+    df_documentos_tender = df_documentos_tender.drop_duplicates(subset='cve_expediente', keep='first')
+
+    return df_documentos_tender
