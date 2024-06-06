@@ -46,10 +46,9 @@ class PathConfig:
         self.test_path = os.path.join(os.getcwd(), "test")
 
         # Archivos y direcciones
-        self.contrataciones_url = "https://compranetinfo.hacienda.gob.mx/dabiertos/contrataciones_arr.json.zip"
         self.contrataciones_raw_path = os.path.join(os.getcwd(), "data/Raw/contrataciones_arr.json.zip")
         self.contrataciones_raw_unzip_path = os.path.join(os.getcwd(), "data/Raw/")
-        self.contrataciones_processed_raw_path = os.path.join(os.getcwd(), "data/Processed/All_Tables_Raw/")
+        self.contrataciones_processed_csv_path = os.path.join(os.getcwd(), "data/Processed/csv_files/")
         self.contrataciones_processed_parquet_path = os.path.join(os.getcwd(), "data/Processed/parquet_files/")
         self.contrataciones_processed_cleaned_path = os.path.join(os.getcwd(), "data/Processed/Cleaned/")
         self.contrataciones_processed_cleaned_parquet_path = os.path.join(os.getcwd(),
@@ -59,10 +58,11 @@ class PathConfig:
 # Definición de constantes
 # MongoDB
 DB_NAME = 'Contratos_EDCA'
-COLLECTION_NAME = 'Contratos_EDCA_Bulk'
+COLLECTION_NAME = 'Contratos_ECDA_Bulk' # Cambiar a Contratos_ECDA_sample para probar con un archivo de menor tamaño
 DB_URL_DOCKER = 'mongodb://db:27017'
 DB_URL = 'mongodb://localhost:27017'
 # JSON Files
+CONTRATACIONES_URL = "https://compranetinfo.hacienda.gob.mx/dabiertos/contrataciones_arr.json.zip"
 CONTRATACIONES_JSON = 'contratacionesabiertas_bulk.json'
 
 # Logger setup
