@@ -6,12 +6,18 @@ import os
 import shutil
 from config import *
 import config
+from src.data_download_unzip import download_contrataciones_zip, unzip
 from src.extraction_mongodb import extract_participantes_proveedores, extract_licitacion, extract_asignacion, \
     extract_comprador, extract_documentos_tender, extract_item_adq
 from pymongo import MongoClient, errors
 import base64
 import pandas as pd
 import zipfile
+
+from src.mongodb_utils import connect_to_mongodb
+
+logger = logging.getLogger("Contrataciones")
+logger.setLevel(logging.INFO)
 
 
 def create_download_link(filename):
@@ -71,7 +77,7 @@ def show_intro():
 def start_download_and_unzip():
     cols_button = st.columns([1, 3, 1])  # Create three columns for the button
     if cols_button[1].button('Pulsa para comenzar el proceso de descarga y extrracción local.',
-                             key='start_process_button'):
+                             key='start_process_button_1'):
         st.session_state.button_pressed = True
 
     if st.session_state.get('button_pressed'):
@@ -90,13 +96,11 @@ def start_download_and_unzip():
 
 
 def start_extraction():
-    try:
-        client = MongoClient('mongodb://localhost:27017', serverSelectionTimeoutMS=5000)
-        db = client['your_database_name']
-    except errors.ServerSelectionTimeoutError as err:
-        st.error("Failed to connect to MongoDB: %s" % err)
-
+    db = connect_to_mongodb()
     # Set a uniform width for all buttons
+    '''
+    Haz click en la tabla(s) que deseas exportar y continúa al siguiente paso
+    '''
     st.markdown("""
     <style>
     .stButton>button {
@@ -171,13 +175,13 @@ def download_results():
     ]
     # Create a download button for each dataset
     filelinks = [
-        'data/Processed/csv_files/participantes_proveedores.csv',
-        'data/Processed/csv_files/licitacion_data.csv',
-        'data/Processed/csv_files/asignacion_data.csv',
-        'data/Processed/csv_files/comprador_sesna_data.csv',
-        'data/Processed/csv_files/documentos_tender_sesna.csv',
-        'data/Processed/csv_files/items_adq_sesna_data.csv',
-        'data/Processed/csv_files/tender_items_sesna_data.csv',
+        path_config.contrataciones_processed_csv_path + 'participantes_proveedores.csv',
+        path_config.contrataciones_processed_csv_path + 'licitacion_data.csv',
+        path_config.contrataciones_processed_csv_path + 'asignacion_data.csv',
+        path_config.contrataciones_processed_csv_path + 'comprador_sesna_data.csv',
+        path_config.contrataciones_processed_csv_path + 'documentos_tender_sesna.csv',
+        path_config.contrataciones_processed_csv_path + 'items_adq_sesna_data.csv',
+        path_config.contrataciones_processed_csv_path + 'tender_items_sesna_data.csv',
     ]
 
     for i, (filename, filelink) in enumerate(zip(filenames, filelinks)):
@@ -188,10 +192,6 @@ def download_results():
     if st.button('Download All'):
         href = create_download_link2(filelinks, 'all_data.zip')()
         st.markdown(href, unsafe_allow_html=True)
-
-    # Rest of your code...  
-
-    # Change the color of the 'Extract All Tables' button
 
     st.markdown("<br>", unsafe_allow_html=True)
     cols4 = st.columns([1, 1, 1])  # Create three columns
@@ -214,10 +214,6 @@ def clear_directory(directory):
             print(f'Failed to delete {file_path}. Reason: {e}')
 
 
-logger = logging.getLogger("Contrataciones")
-logger.setLevel(logging.INFO)
-
-
 def main():
     if not os.path.exists(config.path_config.data_path):
         os.makedirs(config.path_config.data_path)
@@ -230,18 +226,29 @@ def main():
     clear_directory(config.path_config.contrataciones_raw_unzip_path)
 
     with st.spinner(
-            'Ejecutando scripts... Esto puede tardar unos minutos. No cambie de pestaña hasta que el proceso haya acabado!'):
+            'Ejecutando scripts... Esto puede tardar unos minutos. No cambie de pestaña hasta que el proceso haya '
+            'acabado!'):
         logger.info("Inicio de Descarga y Extracción de datos")
-        scripts = ["src/data_download_unzip.py"]
+        # scripts = ["src/data_download_unzip.py"]
+        # progress_bar = st.progress(0)  # Initialize progress bar
+        # for i, script in enumerate(scripts):
+        #     result = subprocess.run([sys.executable, script], check=False, text=True, capture_output=True)
+        #     progress_percent = (i + 1) / len(scripts)  # Calculate progress percentage
+        #     progress_bar.progress(progress_percent)  # Update progress bar
+        #     if result.returncode != 0:
+        #         logger.error(f"{script} failed with error:\n{result.stderr}")
+        #         st.error(f"{script} failed with error:\n{result.stderr}")
+        #         break
+
         progress_bar = st.progress(0)  # Initialize progress bar
-        for i, script in enumerate(scripts):
-            result = subprocess.run([sys.executable, script], check=False, text=True, capture_output=True)
-            progress_percent = (i + 1) / len(scripts)  # Calculate progress percentage
-            progress_bar.progress(progress_percent)  # Update progress bar
-            if result.returncode != 0:
-                logger.error(f"{script} failed with error:\n{result.stderr}")
-                st.error(f"{script} failed with error:\n{result.stderr}")
-                break
+        try:
+            start_download_and_unzip()  # Call the function directly
+            progress_bar.progress(0.5)  # Update progress bar to 100% as we only have one function
+            unzip()
+            progress_bar.progress(1)  # Update progress bar to 100% as we only have one function
+        except Exception as e:
+            logger.error(f"download_and_unzip failed with error:\n{str(e)}")
+            st.error(f"download_and_unzip failed with error:\n{str(e)}")
 
 
 if __name__ == '__main__':
@@ -277,6 +284,7 @@ if __name__ == '__main__':
         st.session_state.page = '1. Introducción'
 
     # Create navigation menu
+
     st.session_state.page = st.radio('Process',
                                      ['1. Introducción', '2. Descarga y unzip', '3. Extracción de datos de MongoDB',
                                       '4. Descarga de resultados'])
