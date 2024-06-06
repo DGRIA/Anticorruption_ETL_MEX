@@ -144,6 +144,7 @@ dmypy.json
 .git/
 .gitignore
 # Mottum
+logs/
 data/
 !data/Cleaned/.gitkeep
 !data/Cleaned/parquet_files/.gitkeep
