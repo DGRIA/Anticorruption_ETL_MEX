@@ -77,7 +77,7 @@ def start_download_and_unzip():
     st.markdown((
         """
             En esta pestaña realizamos la descarga de contrataciones_arr.json.zip, y lo extraemos en 
-            la carpeta contrataciones_raw_unzip.
+            la carpeta data/Raw.
         """
     ))
     cols_button = st.columns([1, 3, 1])  # Create three columns for the button
@@ -95,7 +95,8 @@ def start_extraction():
     db = connect_to_mongodb()
     # Set a uniform width for all buttons
     '''
-    Haz click en la tabla(s) que deseas exportar y continúa al siguiente paso
+    Haz click en la tabla(s) que deseas exportar y continúa al siguiente paso. Las limpiezas 
+    necesarias se realizan en este paso también.
     '''
     st.markdown("""
     <style>
@@ -117,18 +118,18 @@ def start_extraction():
     with st.spinner('Extrayendo datos de MongoDB...'):
         if cols[1].button('Extract Licitaciones', key='button2'):
             extract_licitacion(db)
-            clean_licitacion(db)
+            clean_licitacion('data/Processed/csv_files/licitacion_data.csv')
     with st.spinner('Extrayendo datos de MongoDB...'):
         if cols[2].button('Extract Asignaciones', key='button3'):
             extract_asignacion(db)
-            clean_asignacion(db)
+            clean_asignacion('data/Processed/csv_files/asignacion_data.csv')
     with st.spinner('Extrayendo datos de MongoDB...'):
         if cols2[0].button('Extract Compradores', key='button4'):
             extract_comprador(db)
     with st.spinner('Extrayendo datos de MongoDB...'):
         if cols2[1].button('Extract Documentos Tender', key='button5'):
             extract_documentos_tender(db)
-            clean_documentos_tender(db)
+            clean_documentos_tender('data/Processed/csv_files/documentos_tender_sesna_data.csv')
     with st.spinner('Extrayendo datos de MongoDB...'):
         if cols2[2].button('Extract Item Adq', key='button6'):
             extract_item_adq(db)
@@ -139,11 +140,11 @@ def start_extraction():
     if cols3[1].button('Extract All Tables', key='button8'):
         extract_participantes_proveedores(db)
         extract_licitacion(db)
-        clean_licitacion(db)
+        clean_licitacion('data/Processed/csv_files/licitacion_data.csv')
         extract_asignacion(db)
-        clean_asignacion(db)
+        clean_asignacion('data/Processed/csv_files/asignacion_data.csv')
         extract_comprador(db)
-        extract_documentos_tender(db)
+        extract_documentos_tender('data/Processed/csv_files/documentos_tender_sesna_data.csv')
         clean_documentos_tender(db)
         extract_item_adq(db)
 
@@ -159,6 +160,12 @@ def start_extraction():
 
 
 def download_results():
+    st.markdown((
+        """
+            Aquí puede descargar los archivos generados en la sección de extracción de datos. Son archivos grandes
+            con lo cual puede tardar un poco en descargarlos.
+        """
+    ))
     st.markdown("""
     <style>
     .stButton>button {
@@ -181,13 +188,13 @@ def download_results():
     ]
     # Create a download button for each dataset
     filelinks = [
-        path_config.contrataciones_processed_csv_path + 'participantes_proveedores_V2_Raw.csv',
-        path_config.contrataciones_processed_csv_path + 'licitacion_data_Raw.csv',
-        path_config.contrataciones_processed_csv_path + 'asignacion_data_Raw.csv',
-        path_config.contrataciones_processed_csv_path + 'comprador_data_Raw.csv',
-        path_config.contrataciones_processed_csv_path + 'documentos_tender_data_V2_Raw.csv',
-        path_config.contrataciones_processed_csv_path + 'items_adq_data_Raw.csv',
-        path_config.contrataciones_processed_csv_path + 'tender_items_data_Raw.csv',
+        path_config.contrataciones_processed_csv_path + 'participantes_proveedores.csv',
+        path_config.contrataciones_processed_csv_path + 'licitacion_data.csv',
+        path_config.contrataciones_processed_csv_path + 'asignacion_data.csv',
+        path_config.contrataciones_processed_csv_path + 'comprador_sesna_data.csv',
+        path_config.contrataciones_processed_csv_path + 'documentos_tender_sesna_data.csv',
+        path_config.contrataciones_processed_csv_path + 'items_adq_sesna_data.csv',
+        path_config.contrataciones_processed_csv_path + 'tender_items_sesna_data.csv',
     ]
 
     # Ensure cols has enough elements
