@@ -25,10 +25,10 @@ class LoggerConfig:
         root_logger = logging.getLogger("Contrataciones")
         root_logger.setLevel(self.level)
 
-        file_handler = logging.FileHandler(self.filename)
-        file_handler.setLevel(logging.INFO)
-        file_handler.setFormatter(log_formatter)
-        root_logger.addHandler(file_handler)
+        # file_handler = logging.FileHandler(self.filename)
+        # file_handler.setLevel(logging.INFO)
+        # file_handler.setFormatter(log_formatter)
+        # root_logger.addHandler(file_handler)
 
         # Add StreamHandler to print logs to terminal
         stream_handler = logging.StreamHandler()

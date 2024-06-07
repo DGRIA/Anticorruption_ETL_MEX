@@ -6,10 +6,12 @@ import os
 import shutil
 from config import *
 import config
+from src.mongodb_utils import process_large_json
 from src.data_download_unzip import download_contrataciones_zip, unzip
 from src.extraction_mongodb import extract_participantes_proveedores, extract_licitacion, extract_asignacion, \
-    extract_comprador, extract_documentos_tender, extract_item_adq, extract_item_tender, clean_licitacion, clean_asignacion, clean_documentos_tender
-from pymongo import MongoClient, errors
+    extract_comprador, extract_documentos_tender, extract_item_adq, extract_item_tender, clean_licitacion, \
+    clean_asignacion, clean_documentos_tender
+
 import base64
 import pandas as pd
 import zipfile
@@ -36,6 +38,7 @@ def create_download_link(original_filename, download_filename):
 
     return download
 
+
 def create_download_link2(filenames, zip_filename):
     def download():
         # Create a new ZIP file
@@ -56,7 +59,7 @@ def create_download_link2(filenames, zip_filename):
 def show_intro():
     st.markdown((
         """
-            La siguiente aplicacion ha sido desarrollada para [SESNA](https://www.sesna.gob.mx/).
+            La siguiente aplicación ha sido desarrollada para [SESNA](https://www.sesna.gob.mx/).
             El propósito de esta aplicación es la descarga, limpieza y unión de las bases de datos
             publicadas en la siguiente URL: [Programa de Anticorrupción](https://compranetinfo.hacienda.gob.mx/dabiertos/contrataciones_arr.json.zip).
             Este proyecto contribuirá con la creación de políticas integrales y anteproyectos de metodologías e indicadores para evaluar el fenómeno de la corrupción en México.
@@ -87,7 +90,9 @@ def start_download_and_unzip():
     st.markdown("<br>", unsafe_allow_html=True)
     cols = st.columns([1, 1, 1])  # Create three columns
     inner_cols = cols[2].columns([1, 1, 1, 1])  # Create two columns inside the middle column
-    inner_cols[0].markdown("<p style='text-align: center; font-family: Comic Sans MS; padding-top: 12px; white-space: nowrap;'>Made with love</p>", unsafe_allow_html=True) # Center the text, change the font, and add padding
+    inner_cols[0].markdown(
+        "<p style='text-align: center; font-family: Comic Sans MS; padding-top: 12px; white-space: nowrap;'>Made with love</p>",
+        unsafe_allow_html=True)  # Center the text, change the font, and add padding
     inner_cols[2].image('docs/images/mottum2.png', use_column_width=True)
 
 
@@ -118,7 +123,7 @@ def start_extraction():
     with st.spinner('Extrayendo datos de MongoDB...'):
         if cols[1].button('Extract Licitaciones', key='button2'):
             extract_licitacion(db)
-            clean_licitacion('data/Processed/csv_files/licitacion_data.csv')
+            # clean_licitacion('data/Processed/csv_files/licitacion_data.csv')
     with st.spinner('Extrayendo datos de MongoDB...'):
         if cols[2].button('Extract Asignaciones', key='button3'):
             extract_asignacion(db)
@@ -129,7 +134,7 @@ def start_extraction():
     with st.spinner('Extrayendo datos de MongoDB...'):
         if cols2[1].button('Extract Documentos Tender', key='button5'):
             extract_documentos_tender(db)
-            clean_documentos_tender('data/Processed/csv_files/documentos_tender_sesna_data.csv')
+            # clean_documentos_tender('data/Processed/csv_files/documentos_tender_sesna_data.csv')
     with st.spinner('Extrayendo datos de MongoDB...'):
         if cols2[2].button('Extract Item Adq', key='button6'):
             extract_item_adq(db)
@@ -140,11 +145,11 @@ def start_extraction():
     if cols3[1].button('Extract All Tables', key='button8'):
         extract_participantes_proveedores(db)
         extract_licitacion(db)
-        clean_licitacion('data/Processed/csv_files/licitacion_data.csv')
+        # clean_licitacion('data/Processed/csv_files/licitacion_data.csv')
         extract_asignacion(db)
-        clean_asignacion('data/Processed/csv_files/asignacion_data.csv')
+        # clean_asignacion('data/Processed/csv_files/asignacion_data.csv')
         extract_comprador(db)
-        extract_documentos_tender('data/Processed/csv_files/documentos_tender_sesna_data.csv')
+        # extract_documentos_tender('data/Processed/csv_files/documentos_tender_sesna_data.csv')
         clean_documentos_tender(db)
         extract_item_adq(db)
 
@@ -268,9 +273,10 @@ def main():
         progress_bar = st.progress(0)  # Initialize progress bar
         try:
             download_contrataciones_zip()
-            progress_bar.progress(0.5)  # Update progress bar to 100% as we only have one function
+            progress_bar.progress(50)  # Update progress bar to 100% as we only have one function
             unzip()
-            progress_bar.progress(1)  # Update progress bar to 100% as we only have one function
+            progress_bar.progress(75)  # Update progress bar to 100% as we only have one function
+            process_large_json(config.path_config.contrataciones_raw_path)
         except Exception as e:
             logger.error(f"download_and_unzip failed with error:\n{str(e)}")
             st.error(f"download_and_unzip failed with error:\n{str(e)}")
@@ -317,7 +323,7 @@ if __name__ == '__main__':
     # Display the selected page
     if st.session_state.page == '1. Introducción':
         show_intro()
-    elif st.session_state.page == '2. Descarga y unzip':
+    elif st.session_state.page == '2. Descarga, unzip y populate MongoDB':
         start_download_and_unzip()
     elif st.session_state.page == '3. Extracción de datos de MongoDB':
         start_extraction()
