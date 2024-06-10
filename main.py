@@ -84,7 +84,7 @@ def start_download_and_unzip():
         """
     ))
     cols_button = st.columns([1, 3, 1])  # Create three columns for the button
-    if cols_button[1].button('Pulsa para comenzar el proceso de descarga y limpieza de datos.', key='unique_key'):
+    if cols_button[1].button('Pulsa para comenzar el proceso de descarga y limpieza de datos.'):
         main()
 
     st.markdown("<br>", unsafe_allow_html=True)
@@ -116,31 +116,38 @@ def start_extraction():
     cols2 = st.columns(3)
     cols3 = st.columns(2)
 
-    # Create a button in each column
+        # Create a button in each column
     with st.spinner('Extrayendo datos de MongoDB...'):
         if cols[0].button('Extract Proveedores', key='button1'):
             extract_participantes_proveedores(db)
+            st.success('Extracción de Proveedores fue un éxito.')
     with st.spinner('Extrayendo datos de MongoDB...'):
         if cols[1].button('Extract Licitaciones', key='button2'):
             extract_licitacion(db)
+            st.success('Extracción de licitaciones fue un éxito.')
             # clean_licitacion('data/Processed/csv_files/licitacion_data.csv')
     with st.spinner('Extrayendo datos de MongoDB...'):
         if cols[2].button('Extract Asignaciones', key='button3'):
             extract_asignacion(db)
+            st.success('Extracción de asignaciones fue un éxito.')
             clean_asignacion('data/Processed/csv_files/asignacion_data.csv')
     with st.spinner('Extrayendo datos de MongoDB...'):
         if cols2[0].button('Extract Compradores', key='button4'):
             extract_comprador(db)
+            st.success('Extracción de compradores fue un éxito.')
     with st.spinner('Extrayendo datos de MongoDB...'):
         if cols2[1].button('Extract Documentos Tender', key='button5'):
             extract_documentos_tender(db)
+            st.success('Extracción de Documentos Tender fue un éxito.')
             # clean_documentos_tender('data/Processed/csv_files/documentos_tender_sesna_data.csv')
     with st.spinner('Extrayendo datos de MongoDB...'):
         if cols2[2].button('Extract Item Adq', key='button6'):
             extract_item_adq(db)
+            st.success('Extracción de Items adquisiciones fue un éxito.')
     with st.spinner('Extrayendo datos de MongoDB...'):
         if cols3[0].button('Extract Item Tender', key='button7'):
             extract_item_tender(db)
+            st.success('Extracción de Items Tender fue un éxito.')
 
     if cols3[1].button('Extract All Tables', key='button8'):
         extract_participantes_proveedores(db)
@@ -152,6 +159,7 @@ def start_extraction():
         # extract_documentos_tender('data/Processed/csv_files/documentos_tender_sesna_data.csv')
         clean_documentos_tender(db)
         extract_item_adq(db)
+        st.success('La extracción fue un éxito.')
 
     # Change the color of the 'Extract All Tables' button
 
@@ -317,7 +325,7 @@ if __name__ == '__main__':
     # Create navigation menu
 
     st.session_state.page = st.radio('Process',
-                                     ['1. Introducción', '2. Descarga y unzip', '3. Extracción de datos de MongoDB',
+                                     ['1. Introducción', '2. Descarga, unzip y populate MongoDB', '3. Extracción de datos de MongoDB',
                                       '4. Descarga de resultados'])
 
     # Display the selected page
