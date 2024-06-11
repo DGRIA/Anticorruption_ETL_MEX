@@ -395,9 +395,6 @@ def extract_item_tender(db):
     logger.info("Extracción de Tender Items finalizada.")
 
 
-# TODO SOLVENTAR DEVUELVE UNA SOLA FILA TRAS EL DROP
-
-
 def clean_asignacion(df_asignacion):
     df_asignacion['contract_start_date'] = pd.to_datetime(df_asignacion['contract_start_date'], errors='coerce')
     df_asignacion = df_asignacion.sort_values(['cve_contrato', 'contract_start_date'], ascending=[True, False])
