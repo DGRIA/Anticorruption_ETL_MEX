@@ -20,15 +20,18 @@ logger = logging.getLogger("Contrataciones")
 logger.setLevel(logging.INFO)
 
 
-def create_download_link(original_filename, download_filename):
+# TODO Ver que problema ocurre con los .zip que se guardan en el directorio raiz
+
+def create_download_link(table, filename):
     def download():
         # Create a new ZIP file
-        zip_filename = f"{download_filename}.zip"
-        with zipfile.ZipFile(zip_filename, 'w', zipfile.ZIP_DEFLATED) as zipf:
-            zipf.write(original_filename, arcname=path_config.data_path + original_filename)
+        zip_filename = f"{filename.split('.')[0]}.zip"
+        zip_path = path_config.data_path + '/' + zip_filename
+        with zipfile.ZipFile(zip_path, 'w', zipfile.ZIP_DEFLATED) as zipf:
+            zipf.write(path_config.contrataciones_processed_csv_path + filename, arcname=filename)
 
         # Read the ZIP file into
-        with open(zip_filename, 'rb') as f:
+        with open(zip_path, 'rb') as f:
             bytes = f.read()
             b64 = base64.b64encode(bytes).decode()  # some strings <-> bytes conversions necessary here
             href = f'<a href="data:file/zip;base64,{b64}" download="{zip_filename}">Download {zip_filename}</a>'
@@ -37,15 +40,39 @@ def create_download_link(original_filename, download_filename):
     return download
 
 
-def create_download_link2(filenames, zip_filename):
+#
+# def create_download_link_all(filenames, zip_filename):
+#     def download():
+#         # Create a new ZIP file
+#         with zipfile.ZipFile(path_config.contrataciones_processed_csv_path + zip_filename, 'w',
+#                              zipfile.ZIP_DEFLATED) as zipf:
+#             for filename in filenames:
+#                 if filename != '.gitkeep' and filename and not filename.endswith('.zip'):
+#                     zipf.write(path_config.contrataciones_processed_csv_path + zip_filename,
+#                                arcname=path_config.contrataciones_processed_csv_path + filename)
+#
+#         # Read the ZIP file into memory
+#         with open(zip_filename, 'rb') as f:
+#             bytes = f.read()
+#             b64 = base64.b64encode(bytes).decode()  # some strings <-> bytes conversions necessary here
+#             href = f'<a href="data:file/zip;base64,{b64}" download="{zip_filename}">Download {zip_filename}</a>'
+#             return href
+#
+#     return download
+
+def create_download_link_all(directory, zip_filename):
     def download():
+        # Get a list of all CSV files in the directory
+        filenames = [f for f in os.listdir(directory) if f.endswith('.csv')]
+
         # Create a new ZIP file
-        with zipfile.ZipFile(zip_filename, 'w', zipfile.ZIP_DEFLATED) as zipf:
+        with zipfile.ZipFile(path_config.data_path + '/' + zip_filename, 'w', zipfile.ZIP_DEFLATED) as zipf:
             for filename in filenames:
-                zipf.write(filename, arcname=path_config.data_path + filename)
+                logger.info(f"Adding {filename} to ZIP file.")
+                zipf.write(os.path.join(directory, filename), arcname=filename)
 
         # Read the ZIP file into memory
-        with open(zip_filename, 'rb') as f:
+        with open(path_config.data_path + zip_filename, 'rb') as f:
             bytes = f.read()
             b64 = base64.b64encode(bytes).decode()  # some strings <-> bytes conversions necessary here
             href = f'<a href="data:file/zip;base64,{b64}" download="{zip_filename}">Download {zip_filename}</a>'
@@ -79,6 +106,25 @@ def start_download_and_unzip():
         """
             En esta pestaña se realiza la descarga de 'contrataciones_arr.json.zip', y la extracción en 
             en el directorio data/Raw.
+        """
+    ))
+    cols_button = st.columns([1, 1, 1])  # Create three columns for the button
+    if cols_button[1].button('Inicio de descarga'):
+        main()
+
+    st.markdown("<br>", unsafe_allow_html=True)
+    cols = st.columns([1, 1, 1])  # Create three columns
+    inner_cols = cols[2].columns([1, 1, 1, 1])  # Create two columns inside the middle column
+    inner_cols[0].markdown(
+        "<p style='text-align: center; font-family: Comic Sans MS; padding-top: 12px; white-space: nowrap;'>Made with love</p>",
+        unsafe_allow_html=True)  # Center the text, change the font, and add padding
+    inner_cols[2].image('docs/images/mottum2.png', use_column_width=True)
+
+
+def start_populate():
+    st.markdown((
+        """
+            En esta pestaña esta en progrres
         """
     ))
     cols_button = st.columns([1, 1, 1])  # Create three columns for the button
@@ -151,15 +197,24 @@ def start_extraction():
             st.success('Extracción de Items Tender fue un éxito.')
     # Extract all tables
     if cols3[1].button('Extraer todas las tablas', key='button8'):
+        extract_progress_bar = st.progress(0, 'Extrayendo todas las tablas de MongoDB...')
         with st.spinner('Extrayendo todas las tablas de MongoDB...'):
+            extract_progress_bar.progress(0 / 7, 'Extrayendo Participantes Proveedores...')
             extract_participantes_proveedores(db)
+            extract_progress_bar.progress(1 / 7, 'Extrayendo Licitaciones...')
             extract_licitacion(db)
+            extract_progress_bar.progress(2 / 7, 'Extrayendo Asignaciones...')
             extract_asignacion(db)
+            extract_progress_bar.progress(3 / 7, 'Extrayendo Compradores...')
             extract_comprador(db)
+            extract_progress_bar.progress(4 / 7, 'Extrayendo Documentos Tender...')
             extract_item_adq(db)
+            extract_progress_bar.progress(5 / 7, 'Extrayendo Items ADQ...')
             extract_item_tender(db)
+            extract_progress_bar.progress(6 / 7, 'Extrayendo Items Tender...')
             extract_documentos_tender(db)
-    st.success('La extracción fue un éxito.')
+            extract_progress_bar.progress(7 / 7, 'Extracción completa.')
+        st.success('La extracción fue un éxito.')
 
     # Change the color of the 'Extract All Tables' button
 
@@ -172,12 +227,88 @@ def start_extraction():
     inner_cols[2].image('docs/images/mottum2.png', use_column_width=True)  # Colocar la imagen
 
 
+# def download_results():
+#     st.markdown((
+#         """
+#             Aquí puede descargar los archivos generados en la sección de extracción de datos. Son archivos grandes
+#             con lo cual puede tardar un poco en descargarlos.
+#         """
+#     ))
+#     st.markdown("""
+#     <style>
+#     .stButton>button {
+#         width: 100%;
+#     }
+#     </style>
+#     """, unsafe_allow_html=True)
+#
+#     # Create a row of columns for the buttons
+#     cols = [st.columns(2) for _ in range(3)]
+#
+#     files = {
+#         'Participantes Proveedores': path_config.contrataciones_processed_csv_path + 'participantes_proveedores.csv',
+#         'Licitaciones': path_config.contrataciones_processed_csv_path + 'licitacion_data.csv',
+#         'Asignaciones': path_config.contrataciones_processed_csv_path + 'asignacion_data.csv',
+#         'Compradores': path_config.contrataciones_processed_csv_path + 'comprador_sesna_data.csv',
+#         'Documentos Tender': path_config.contrataciones_processed_csv_path + 'documentos_tender_sesna_data.csv',
+#         'Items ADQ': path_config.contrataciones_processed_csv_path + 'items_adq_sesna_data.csv',
+#         'Items Tender': path_config.contrataciones_processed_csv_path + 'tender_items_sesna_data.csv',
+#     }
+#
+#     # Ensure cols has enough elements
+#     while len(cols) < len(files.items()) // 2 + 1:
+#         cols.append([None, None])
+#
+#     for i, (filename, filelink) in enumerate(files.items()):
+#         if i < len(files.items()) - 1 or len(files.items()) % 2 == 0:  # Regular case
+#             if cols[i // 2][i % 2].button(f'Download {filename}', key=f'download_{i}'):
+#                 with st.spinner(f'Generando link de descarga para {filename}...'):
+#                     href = create_download_link(filelinks[i], filenames[i])()
+#                     st.markdown(href, unsafe_allow_html=True)
+#         else:  # Special case for the last button when the number of elements is odd
+#             if st.button(f'Download {filename}', key=f'download_{i}'):
+#                 with st.spinner(f'Generando link de descarga para {filename}...'):
+#                     href = create_download_link(filelinks[i], filenames[i])()
+#                     st.markdown(href, unsafe_allow_html=True)
+#
+#     # Add the 'Download All' button
+#     if st.button('Download All', key='download_all'):
+#         href = create_download_link_all(filelinks, 'all_data.zip')()
+#         st.markdown(href, unsafe_allow_html=True)
+#
+#     st.markdown("<br>", unsafe_allow_html=True)
+#     cols4 = st.columns([1, 1, 1])  # Create three columns
+#     inner_cols = cols4[2].columns([1, 1, 1, 1])  # Create two columns inside the middle column
+#     inner_cols[0].markdown(
+#         "<p style='text-align: center; font-family: Comic Sans MS; padding-top: 12px; white-space: nowrap;'>Made with love</p>",
+#         unsafe_allow_html=True)  # Center the text, change the font, and add padding
+#     inner_cols[2].image('docs/images/mottum2.png', use_column_width=True)
+#
+
+def create_download_button(table, filename, key, path=None):
+    if path:
+        if os.path.exists(path + filename):
+            if st.button(f'Download {table}', key=key):
+                with st.spinner(f'Generando link de descarga para {table}...'):
+                    href = create_download_link(table, filename)()
+                    st.markdown(href, unsafe_allow_html=True)
+        elif table == 'Todas las tablas':
+            if st.button(f'Download {table}', key=key):
+                with st.spinner(f'Generando link de descarga para {table}...'):
+                    # Filenames here are the names of the files in the directory
+                    href = create_download_link_all(filename, 'all_data.zip')()
+                    st.markdown(href, unsafe_allow_html=True)
+        else:
+            st.error(f'El archivo {table} no existe.')
+
+
 def download_results():
     st.markdown((
-        """
-            Aquí puede descargar los archivos generados en la sección de extracción de datos. Son archivos grandes
-            con lo cual puede tardar un poco en descargarlos.
-        """
+        """Esta sección es para la descarga de los archivos generados en la sección de extracción de datos. Son 
+        archivos grandes con lo cual puede tardar un poco en descargarlos."""
+    ))
+    st.markdown((
+        """ :warning: En el caso de que los ficheros CSV no se hayan generado, no aparecerá el botón de descarga."""
     ))
     st.markdown("""
     <style>
@@ -187,53 +318,33 @@ def download_results():
     </style>
     """, unsafe_allow_html=True)
 
-    # Create a row of columns for the buttons
-    cols = [st.columns(2) for _ in range(3)]
+    files = {
+        'Participantes Proveedores': 'participantes_proveedores.csv',
+        'Licitaciones': 'licitacion_data.csv',
+        'Asignaciones': 'asignacion_data.csv',
+        'Compradores': 'comprador_sesna_data.csv',
+        'Documentos Tender':
+            'documentos_tender_sesna_data.csv',
+        'Items ADQ': 'items_adq_sesna_data.csv',
+        'Items Tender': 'tender_items_sesna_data.csv',
+        'Todas las tablas': path_config.contrataciones_processed_csv_path
+    }
 
-    filenames = [
-        'Participantes Proveedores',
-        'Licitaciones',
-        'Asignaciones',
-        'Compradores',
-        'Documentos Tender',
-        'Items Adquisiciones',
-        'Items Tender'
-    ]
-    # Create a download button for each dataset
-    filelinks = [
-        path_config.contrataciones_processed_csv_path + 'participantes_proveedores.csv',
-        path_config.contrataciones_processed_csv_path + 'licitacion_data.csv',
-        path_config.contrataciones_processed_csv_path + 'asignacion_data.csv',
-        path_config.contrataciones_processed_csv_path + 'comprador_sesna_data.csv',
-        path_config.contrataciones_processed_csv_path + 'documentos_tender_sesna_data.csv',
-        path_config.contrataciones_processed_csv_path + 'items_adq_sesna_data.csv',
-        path_config.contrataciones_processed_csv_path + 'tender_items_sesna_data.csv',
-    ]
 
-    # Ensure cols has enough elements
-    while len(cols) < len(filelinks) // 2 + 1:
-        cols.append([None, None])
+    cols = st.columns(2)
 
-    for i, (filename, filelink) in enumerate(zip(filenames, filelinks)):
-        if i < len(filelinks) - 1 or len(filelinks) % 2 == 0:  # Regular case
-            if cols[i // 2][i % 2].button(f'Download {filename}', key=f'download_{i}'):
-                with st.spinner(f'Downloading {filename}...'):
-                    href = create_download_link(filelinks[i], filenames[i])()
-                    st.markdown(href, unsafe_allow_html=True)
-        else:  # Special case for the last button when the number of elements is odd
-            if st.button(f'Download {filename}', key=f'download_{i}'):
-                with st.spinner(f'Downloading {filename}...'):
-                    href = create_download_link(filelinks[i], filenames[i])()
-                    st.markdown(href, unsafe_allow_html=True)
-
-    # Add the 'Download All' button
-    if st.button('Download All', key='download_all'):
-        href = create_download_link2(filelinks, 'all_data.zip')()
-        st.markdown(href, unsafe_allow_html=True)
+    # Add buttons to columns
+    for i, (table, file_name) in enumerate(files.items()):
+        if table != 'Todas las tablas':
+            create_download_button(table=table, filename=file_name, key=f'download_{i}',
+                                   path=path_config.contrataciones_processed_csv_path)
+        else:
+            create_download_button(table='Todas las tablas', filename=files['Todas las tablas'], key=f'download_{i}',
+                                   path=path_config.contrataciones_processed_csv_path)
 
     st.markdown("<br>", unsafe_allow_html=True)
-    cols4 = st.columns([1, 1, 1])  # Create three columns
-    inner_cols = cols4[2].columns([1, 1, 1, 1])  # Create two columns inside the middle column
+    cols = st.columns([1, 1, 1])  # Create three columns
+    inner_cols = cols[2].columns([1, 1, 1, 1])  # Create two columns inside the middle column
     inner_cols[0].markdown(
         "<p style='text-align: center; font-family: Comic Sans MS; padding-top: 12px; white-space: nowrap;'>Made with love</p>",
         unsafe_allow_html=True)  # Center the text, change the font, and add padding
@@ -266,20 +377,16 @@ def main():
     with st.spinner(
             'Estableciendo conexión con el servidor para la descarga. Esto puede tardar unos minutos. No cambie de '
             'pestaña hasta que el proceso haya'
-            'acabado!') as spinner:
+            'acabado!'):
         logger.info("Inicio de Descarga y Extracción de datos")
-        progress_bar = st.progress(0)  # Initialize progress bar
+        progress_bar = st.progress(0, 'Iniciando descarga del archivo JSON')  # Initialize progress bar
         try:
-            if spinner is not None:
-                spinner.write('Descargando datos...')
-                download_contrataciones_zip()
-                progress_bar.progress(50)  # Update progress bar to 100% as we only have one function
-
-            if spinner is not None:
-                spinner.write('Extrayendo datos...')
-                unzip()
-                progress_bar.progress(100)  # Update progress bar to 100% as we only have one function
-            # process_large_json(config.path_config.contrataciones_raw_path)
+            download_contrataciones_zip()
+            progress_bar.progress(50,
+                                  'Descomprimiendo documentos')
+            unzip()
+            progress_bar.progress(100)  # Update progress bar to 100% as we only have one function
+        # process_large_json(config.path_config.contrataciones_raw_path)
         except Exception as e:
             logger.error(f"download_and_unzip failed with error:\n{str(e)}")
             st.error(f"download_and_unzip failed with error:\n{str(e)}")
@@ -320,18 +427,22 @@ if __name__ == '__main__':
     # Create navigation menu
 
     st.session_state.page = st.radio('Process',
-                                     ['1. Introducción', '2. Descarga, unzip y populate MongoDB',
-                                      '3. Extracción de datos de MongoDB',
-                                      '4. Descarga de resultados'])
+                                     ['1. Introducción',
+                                      '2. Descarga del servidor y descompresión',
+                                      '3. Populate MongoDB',
+                                      '4. Extracción de datos de MongoDB',
+                                      '5. Descarga de resultados'])
 
     # Display the selected page
     if st.session_state.page == '1. Introducción':
         show_intro()
-    elif st.session_state.page == '2. Descarga, unzip y populate MongoDB':
+    elif st.session_state.page == '2. Descarga del servidor y descompresión':
         start_download_and_unzip()
-    elif st.session_state.page == '3. Extracción de datos de MongoDB':
+    elif st.session_state.page == '3. Populate MongoDB':
+        start_populate()
+    elif st.session_state.page == '4. Extracción de datos de MongoDB':
         start_extraction()
-    elif st.session_state.page == '4. Descarga de resultados':
+    elif st.session_state.page == '5. Descarga de resultados':
         download_results()
 
     st.markdown(
