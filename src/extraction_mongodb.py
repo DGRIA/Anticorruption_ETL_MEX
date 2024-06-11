@@ -34,18 +34,17 @@ def extract_participantes_proveedores(db):
         # Realiza la consulta a la base de datos
         consulta_actualizada = db[COLLECTION_NAME]
         num_documents = consulta_actualizada.count_documents({})
-
-        print(f'La colección tiene {num_documents} documentos.')
+        logger.info("Número de documentos en la colección: %s", num_documents)
         consulta_actualizada = consulta_actualizada.find({}, {})
         datos = []
         for contrato in consulta_actualizada:
-            for release in contrato.get('releases', []):
-                for party in release.get('parties', []):
+            for party in contrato.get('releases', [{}])[0].get('parties', []):
+                if party:
                     roles = party.get('roles', [])
                     if "tenderer" in roles or all(role in roles for role in ["tenderer", "supplier"]):
                         contrato_dict = {
-                            'cve_expediente': release.get('tender', {}).get('id', ''),
-                            'cve_contrato': release.get('awards', [{}])[0].get('id', ''),
+                            'cve_expediente': contrato.get('releases', [{}])[0].get('tender', {}).get('id', ''),
+                            'cve_contrato': contrato.get('releases', [{}])[0].get('awards', [{}])[0].get('id', ''),
                             'identifier_id': party.get('identifier', {}).get('id', ''),
                             'roles': roles,
                             'name': party.get('name', ''),
@@ -63,7 +62,11 @@ def extract_participantes_proveedores(db):
                         }
                         datos.append(contrato_dict)
 
+        # Creando el dataframe de Participantes_Proveedores
         df_participantes_proveedores = pd.DataFrame(datos)
+
+        logger.info("El dataframe de Participantes_Proveedores tiene el siguiente tamaño: %s",
+                    df_participantes_proveedores.shape)
         # Verifica si se obtuvieron datos
         if not df_participantes_proveedores.empty:
             logger.info("El dataframe de Participantes_Proveedores tiene el siguiente tamaño: %s",
@@ -73,15 +76,14 @@ def extract_participantes_proveedores(db):
                 path_config.contrataciones_processed_csv_path + 'participantes_proveedores.csv',
                 index=False, encoding='utf-8')
             logger.info("Exportación de Participantes_Proveedores a archivo parquet")
-            df_participantes_proveedores.to_parquet(
-                path_config.contrataciones_processed_parquet_path + 'participantes_proveedores.parquet')
+            # df_participantes_proveedores.to_parquet(
+            #     path_config.contrataciones_processed_parquet_path + 'participantes_proveedores.parquet')
         else:
             logger.warning("No se encontraron datos para extraer.")
     except Exception as e:
         logger.error(f"Error durante la extracción de Participantes_Proveedores: {e}")
 
 
-# TODO HACER CLEANING
 def extract_licitacion(db):
     """Extrae los datos de licitación y los guarda en un archivo CSV."""
     try:
@@ -356,8 +358,8 @@ def extract_item_adq(db):
     logger.info("Exportando Item Adquisición a un archivo csv")
     df_items.to_csv(path_config.contrataciones_processed_csv_path + 'items_adq_sesna_data.csv', index=False,
                     encoding='utf-8')
-    logger.info("Exportación de Item Adquisición a archivo parquet")
-    df_items.to_parquet(path_config.contrataciones_processed_parquet_path + 'items_adq_sesna_data.parquet')
+    # logger.info("Exportación de Item Adquisición a archivo parquet")
+    # df_items.to_parquet(path_config.contrataciones_processed_parquet_path + 'items_adq_sesna_data.parquet')
 
 
 # ITEM_TENDER
@@ -384,7 +386,7 @@ def extract_item_tender(db):
 
     # Exportando el dataframe a un archivo csv_files
     logger.info("El dataframe de Tender Items tiene el siguiente tamaño: %s", df_tender_items.shape)
-    logger.info("Exportando Item Tender a un archivo csv_files")
+    logger.info("Exportando Item Tender a un archivo csv")
     df_tender_items.to_csv(path_config.contrataciones_processed_csv_path + 'tender_items_sesna_data.csv',
                            index=False,
                            encoding='utf-8')
