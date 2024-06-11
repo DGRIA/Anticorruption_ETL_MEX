@@ -9,11 +9,9 @@ import config
 from src.mongodb_utils import process_large_json
 from src.data_download_unzip import download_contrataciones_zip, unzip
 from src.extraction_mongodb import extract_participantes_proveedores, extract_licitacion, extract_asignacion, \
-    extract_comprador, extract_documentos_tender, extract_item_adq, extract_item_tender, clean_licitacion, \
-    clean_asignacion, clean_documentos_tender
+    extract_comprador, extract_documentos_tender, extract_item_adq, extract_item_tender
 
 import base64
-import pandas as pd
 import zipfile
 
 from src.mongodb_utils import connect_to_mongodb
@@ -27,7 +25,7 @@ def create_download_link(original_filename, download_filename):
         # Create a new ZIP file
         zip_filename = f"{download_filename}.zip"
         with zipfile.ZipFile(zip_filename, 'w', zipfile.ZIP_DEFLATED) as zipf:
-            zipf.write(original_filename, arcname=os.path.basename(original_filename))
+            zipf.write(original_filename, arcname=path_config.data_path + original_filename)
 
         # Read the ZIP file into
         with open(zip_filename, 'rb') as f:
@@ -44,7 +42,7 @@ def create_download_link2(filenames, zip_filename):
         # Create a new ZIP file
         with zipfile.ZipFile(zip_filename, 'w', zipfile.ZIP_DEFLATED) as zipf:
             for filename in filenames:
-                zipf.write(filename, arcname=os.path.basename(filename))
+                zipf.write(filename, arcname=path_config.data_path + filename)
 
         # Read the ZIP file into memory
         with open(zip_filename, 'rb') as f:
@@ -79,12 +77,12 @@ def show_intro():
 def start_download_and_unzip():
     st.markdown((
         """
-            En esta pestaña realizamos la descarga de contrataciones_arr.json.zip, y lo extraemos en 
-            la carpeta data/Raw.
+            En esta pestaña se realiza la descarga de 'contrataciones_arr.json.zip', y la extracción en 
+            en el directorio data/Raw.
         """
     ))
-    cols_button = st.columns([1, 3, 1])  # Create three columns for the button
-    if cols_button[1].button('Pulsa para comenzar el proceso de descarga y limpieza de datos.'):
+    cols_button = st.columns([1, 1, 1])  # Create three columns for the button
+    if cols_button[1].button('Inicio de descarga'):
         main()
 
     st.markdown("<br>", unsafe_allow_html=True)
@@ -116,50 +114,52 @@ def start_extraction():
     cols2 = st.columns(3)
     cols3 = st.columns(2)
 
-        # Create a button in each column
-    with st.spinner('Extrayendo datos de MongoDB...'):
-        if cols[0].button('Extract Proveedores', key='button1'):
+    # Proveedores
+    with st.spinner('Extrayendo la tabla de Participantes Proveedores de MongoDB...'):
+        if cols[0].button('Extraer Proveedores', key='button1'):
             extract_participantes_proveedores(db)
-            st.success('Extracción de Proveedores fue un éxito.')
-    with st.spinner('Extrayendo datos de MongoDB...'):
-        if cols[1].button('Extract Licitaciones', key='button2'):
+            st.success('Extracción de Participantes Proveedores fue un éxito.')
+    # Licitaciones
+    with st.spinner('Extrayendo la tabla de Licitaciones de MongoDB...'):
+        if cols[1].button('Extraer Licitaciones', key='button2'):
             extract_licitacion(db)
-            st.success('Extracción de licitaciones fue un éxito.')
-            # clean_licitacion('data/Processed/csv_files/licitacion_data.csv')
-    with st.spinner('Extrayendo datos de MongoDB...'):
-        if cols[2].button('Extract Asignaciones', key='button3'):
+            st.success('Extracción de Licitaciones fue un éxito.')
+    # Asignaciones
+    with st.spinner('Extrayendo la tabla de Asignaciones de MongoDB...'):
+        if cols[2].button('Extraer Asignaciones', key='button3'):
             extract_asignacion(db)
-            st.success('Extracción de asignaciones fue un éxito.')
-            clean_asignacion('data/Processed/csv_files/asignacion_data.csv')
-    with st.spinner('Extrayendo datos de MongoDB...'):
-        if cols2[0].button('Extract Compradores', key='button4'):
+            st.success('Extracción de Asignaciones fue un éxito.')
+    # Compradores
+    with st.spinner('Extrayendo la tabla de Compradores de MongoDB...'):
+        if cols2[0].button('Extraer Compradores', key='button4'):
             extract_comprador(db)
-            st.success('Extracción de compradores fue un éxito.')
-    with st.spinner('Extrayendo datos de MongoDB...'):
-        if cols2[1].button('Extract Documentos Tender', key='button5'):
+            st.success('Extracción de Compradores fue un éxito.')
+    # Documentos Tender
+    with st.spinner('Extrayendo la tabla de Documentos Tender de MongoDB...'):
+        if cols2[1].button('Extraer Documentos Tender', key='button5'):
             extract_documentos_tender(db)
             st.success('Extracción de Documentos Tender fue un éxito.')
-            # clean_documentos_tender('data/Processed/csv_files/documentos_tender_sesna_data.csv')
-    with st.spinner('Extrayendo datos de MongoDB...'):
-        if cols2[2].button('Extract Item Adq', key='button6'):
+    # Items ADQ
+    with st.spinner('Extrayendo la tabla de Item ADQ de MongoDB...'):
+        if cols2[2].button('Extraer Item ADQ', key='button6'):
             extract_item_adq(db)
-            st.success('Extracción de Items adquisiciones fue un éxito.')
-    with st.spinner('Extrayendo datos de MongoDB...'):
-        if cols3[0].button('Extract Item Tender', key='button7'):
+            st.success('Extracción de Items ADQ fue un éxito.')
+    # Items Tender
+    with st.spinner('Extrayendo la tabla de Item Tender de MongoDB...'):
+        if cols3[0].button('Extraer Item Tender', key='button7'):
             extract_item_tender(db)
             st.success('Extracción de Items Tender fue un éxito.')
-
-    if cols3[1].button('Extract All Tables', key='button8'):
-        extract_participantes_proveedores(db)
-        extract_licitacion(db)
-        # clean_licitacion('data/Processed/csv_files/licitacion_data.csv')
-        extract_asignacion(db)
-        # clean_asignacion('data/Processed/csv_files/asignacion_data.csv')
-        extract_comprador(db)
-        # extract_documentos_tender('data/Processed/csv_files/documentos_tender_sesna_data.csv')
-        clean_documentos_tender(db)
-        extract_item_adq(db)
-        st.success('La extracción fue un éxito.')
+    # Extract all tables
+    if cols3[1].button('Extraer todas las tablas', key='button8'):
+        with st.spinner('Extrayendo todas las tablas de MongoDB...'):
+            extract_participantes_proveedores(db)
+            extract_licitacion(db)
+            extract_asignacion(db)
+            extract_comprador(db)
+            extract_item_adq(db)
+            extract_item_tender(db)
+            extract_documentos_tender(db)
+    st.success('La extracción fue un éxito.')
 
     # Change the color of the 'Extract All Tables' button
 
@@ -191,13 +191,13 @@ def download_results():
     cols = [st.columns(2) for _ in range(3)]
 
     filenames = [
-        'Participantes_Proveedores',
+        'Participantes Proveedores',
         'Licitaciones',
         'Asignaciones',
         'Compradores',
-        'Documentos_Tender',
-        'Items_Adquisiciones',
-        'Items_Tender'
+        'Documentos Tender',
+        'Items Adquisiciones',
+        'Items Tender'
     ]
     # Create a download button for each dataset
     filelinks = [
@@ -264,27 +264,22 @@ def main():
     clear_directory(config.path_config.contrataciones_raw_unzip_path)
 
     with st.spinner(
-            'Ejecutando scripts... Esto puede tardar unos minutos. No cambie de pestaña hasta que el proceso haya '
-            'acabado!'):
+            'Estableciendo conexión con el servidor para la descarga. Esto puede tardar unos minutos. No cambie de '
+            'pestaña hasta que el proceso haya'
+            'acabado!') as spinner:
         logger.info("Inicio de Descarga y Extracción de datos")
-        # scripts = ["src/data_download_unzip.py"]
-        # progress_bar = st.progress(0)  # Initialize progress bar
-        # for i, script in enumerate(scripts):
-        #     result = subprocess.run([sys.executable, script], check=False, text=True, capture_output=True)
-        #     progress_percent = (i + 1) / len(scripts)  # Calculate progress percentage
-        #     progress_bar.progress(progress_percent)  # Update progress bar
-        #     if result.returncode != 0:
-        #         logger.error(f"{script} failed with error:\n{result.stderr}")
-        #         st.error(f"{script} failed with error:\n{result.stderr}")
-        #         break
-
         progress_bar = st.progress(0)  # Initialize progress bar
         try:
-            download_contrataciones_zip()
-            progress_bar.progress(50)  # Update progress bar to 100% as we only have one function
-            unzip()
-            progress_bar.progress(75)  # Update progress bar to 100% as we only have one function
-            process_large_json(config.path_config.contrataciones_raw_path)
+            if spinner is not None:
+                spinner.write('Descargando datos...')
+                download_contrataciones_zip()
+                progress_bar.progress(50)  # Update progress bar to 100% as we only have one function
+
+            if spinner is not None:
+                spinner.write('Extrayendo datos...')
+                unzip()
+                progress_bar.progress(100)  # Update progress bar to 100% as we only have one function
+            # process_large_json(config.path_config.contrataciones_raw_path)
         except Exception as e:
             logger.error(f"download_and_unzip failed with error:\n{str(e)}")
             st.error(f"download_and_unzip failed with error:\n{str(e)}")
@@ -325,7 +320,8 @@ if __name__ == '__main__':
     # Create navigation menu
 
     st.session_state.page = st.radio('Process',
-                                     ['1. Introducción', '2. Descarga, unzip y populate MongoDB', '3. Extracción de datos de MongoDB',
+                                     ['1. Introducción', '2. Descarga, unzip y populate MongoDB',
+                                      '3. Extracción de datos de MongoDB',
                                       '4. Descarga de resultados'])
 
     # Display the selected page
