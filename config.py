@@ -56,14 +56,22 @@ class PathConfig:
 
 
 # Definición de constantes
+NAME_Participantes_Proveedores = 'Participantes_Proveedores'
+NAME_Licitacion = 'Licitacion'
+NAME_Asignacion = 'Asignacion'
+NAME_Comprador = 'Comprador'
+NAME_Documentos_Tender = 'Documentos_Tender'
+NAME_Items_Adq = 'Items_Adq'
+NAME_Items_Tender = 'Items_Tender'
+
 # MongoDB
 DB_NAME = 'Contratos_ECDA'
-COLLECTION_NAME = 'Contratos_ECDA_sample'  # Cambiar a Contratos_ECDA_sample para probar con un archivo de menor tamaño
+COLLECTION_NAME = 'Contratos_ECDA'  # Cambiar a Contratos_ECDA_sample para probar con un archivo de menor tamaño
 DB_URL = os.getenv('MONGO_URL', 'mongodb://localhost:27017')
 # DB_URL = 'mongodb://localhost:27017'
 # JSON Files
 CONTRATACIONES_URL = "https://compranetinfo.hacienda.gob.mx/dabiertos/contrataciones_arr.json.zip"
-CONTRATACIONES_JSON = 'contratacionesabiertas_bulk.json'
+CONTRATACIONES_JSON = 'contratacionesabiertas_bulk.json'  # For sample: Contrataciones.Sample_Contratos_EDCA_V2.json
 
 # Logger setup
 logger_config = LoggerConfig()
