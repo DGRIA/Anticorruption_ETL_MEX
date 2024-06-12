@@ -216,10 +216,10 @@ def extract_asignacion(db):
         df_asignacion.to_csv(
             path_config.contrataciones_processed_csv_path + 'asignacion_data.csv',
             index=False, encoding='utf-8')
-        logger.info("Exportación de Asignación a archivo parquet")
-        df_asignacion.to_parquet(
-            path_config.contrataciones_processed_parquet_path + 'asignacion_data.parquet')
-        logger.info("Extracción de Participantes_Proveedores finalizada.")
+        # logger.info("Exportación de Asignación a archivo parquet")
+        # df_asignacion.to_parquet(
+        #     path_config.contrataciones_processed_parquet_path + 'asignacion_data.parquet')
+        # logger.info("Extracción de Participantes_Proveedores finalizada.")
     else:
         logger.warning("No se encontraron datos para extraer.")
 
@@ -264,11 +264,10 @@ def extract_comprador(db):
     logger.info("Exportando Comprador a un archivo csv")
     df_comprador.to_csv(path_config.contrataciones_processed_csv_path + 'comprador_sesna_data.csv', index=False,
                         encoding='utf-8')
-    logger.info("Exportación de Comprador a archivo parquet")
-    df_comprador.to_parquet(path_config.contrataciones_processed_parquet_path + 'comprador_sesna_data.parquet')
+    # logger.info("Exportación de Comprador a archivo parquet")
+    # df_comprador.to_parquet(path_config.contrataciones_processed_parquet_path + 'comprador_sesna_data.parquet')
 
 
-# TODO HACER CLEANING
 # Documentos TENDER
 def extract_documentos_tender(db):
     consulta_actualizada = db[COLLECTION_NAME].find({}, {})
@@ -320,9 +319,9 @@ def extract_documentos_tender(db):
     logger.info("Exportando Documentos Tender a un archivo csv")
     df_documentos_tender.to_csv(path_config.contrataciones_processed_csv_path + 'documentos_tender_sesna_data.csv',
                                 index=False, encoding='utf-8')
-    logger.info("Exportación de Documentos Tender a archivo parquet")
-    df_documentos_tender.to_parquet(
-        path_config.contrataciones_processed_parquet_path + 'documentos_tender_sesna_data.parquet')
+    # logger.info("Exportación de Documentos Tender a archivo parquet")
+    # df_documentos_tender.to_parquet(
+    #     path_config.contrataciones_processed_parquet_path + 'documentos_tender_sesna_data.parquet')
 
 
 # ITEM_ADQ
@@ -390,9 +389,9 @@ def extract_item_tender(db):
     df_tender_items.to_csv(path_config.contrataciones_processed_csv_path + 'tender_items_sesna_data.csv',
                            index=False,
                            encoding='utf-8')
-    logger.info("Exportación de Item Tender a archivo parquet")
-    df_tender_items.to_parquet(path_config.contrataciones_processed_parquet_path + 'tender_items_sesna_data.parquet')
-    logger.info("Extracción de Tender Items finalizada.")
+    # logger.info("Exportación de Item Tender a archivo parquet")
+    # df_tender_items.to_parquet(path_config.contrataciones_processed_parquet_path + 'tender_items_sesna_data.parquet')
+    # logger.info("Extracción de Tender Items finalizada.")
 
 
 def clean_asignacion(df_asignacion):
