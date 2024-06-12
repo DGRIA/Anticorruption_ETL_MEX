@@ -130,4 +130,4 @@ Damos la bienvenida a contribuciones de la comunidad:
 
 ## Licencia 
 
-[Licencia MIT](https://github.com/MottumData/Anticorruption_ETL_MEX/blob/demo/LICENSE)
+[Licencia MIT](https://github.com/MottumData/Anticorruption_ETL_MEX/blob/main/LICENSE)
