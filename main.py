@@ -1,7 +1,5 @@
 import streamlit as st
-import subprocess
 import logging
-import sys
 import os
 import shutil
 from config import *
@@ -37,26 +35,6 @@ def create_download_link(table, filename):
 
     return download
 
-
-#
-# def create_download_link_all(filenames, zip_filename):
-#     def download():
-#         # Create a new ZIP file
-#         with zipfile.ZipFile(path_config.contrataciones_processed_csv_path + zip_filename, 'w',
-#                              zipfile.ZIP_DEFLATED) as zipf:
-#             for filename in filenames:
-#                 if filename != '.gitkeep' and filename and not filename.endswith('.zip'):
-#                     zipf.write(path_config.contrataciones_processed_csv_path + zip_filename,
-#                                arcname=path_config.contrataciones_processed_csv_path + filename)
-#
-#         # Read the ZIP file into memory
-#         with open(zip_filename, 'rb') as f:
-#             bytes = f.read()
-#             b64 = base64.b64encode(bytes).decode()  # some strings <-> bytes conversions necessary here
-#             href = f'<a href="data:file/zip;base64,{b64}" download="{zip_filename}">Download {zip_filename}</a>'
-#             return href
-#
-#     return download
 
 def create_download_link_all(directory, zip_filename):
     def download():
@@ -107,6 +85,10 @@ def start_download_and_unzip():
             f"El archivo `{CONTRATACIONES_JSON}` ya se encuentra en el directorio `{path_config.contrataciones_raw_unzip_path + CONTRATACIONES_JSON}`. "
             f"Tiene un tamaño de {get_file_size(path_config.contrataciones_raw_unzip_path + CONTRATACIONES_JSON)} GB."
             f" Si desea volver a descargarlo inicie el proceso de descarga")
+    else:
+        st.error(
+            f"El archivo de Contrataciones no se encuentra descargado."
+            f" Es necesario descargarlo para continuar con el proceso.")
 
     cols_button = st.columns([1, 1, 1])  # Create three columns for the button
     if cols_button[1].button('Inicio de descarga'):
@@ -139,7 +121,9 @@ def start_populate():
     if cols_button[1].button('Iniciar Populate'):
         with st.spinner('Insertando datos en MongoDB...'):
             progress_bar = st.progress(0, 'Conectando con la base de datos...')
-            process_large_json(path_config.contrataciones_raw_unzip_path + CONTRATACIONES_JSON, progress_bar=progress_bar)
+            process_large_json(path_config.contrataciones_raw_unzip_path + CONTRATACIONES_JSON,
+                               progress_bar=progress_bar)
+            progress_bar.progress(100, 'Datos insertados en MongoDB.')
 
     st.markdown("<br>", unsafe_allow_html=True)
     cols = st.columns([1, 1, 1])  # Create three columns
@@ -232,64 +216,6 @@ def start_extraction():
     inner_cols[2].image('docs/images/mottum2.png', use_column_width=True)  # Colocar la imagen
 
 
-# def download_results():
-#     st.markdown((
-#         """
-#             Aquí puede descargar los archivos generados en la sección de extracción de datos. Son archivos grandes
-#             con lo cual puede tardar un poco en descargarlos.
-#         """
-#     ))
-#     st.markdown("""
-#     <style>
-#     .stButton>button {
-#         width: 100%;
-#     }
-#     </style>
-#     """, unsafe_allow_html=True)
-#
-#     # Create a row of columns for the buttons
-#     cols = [st.columns(2) for _ in range(3)]
-#
-#     files = {
-#         'Participantes Proveedores': path_config.contrataciones_processed_csv_path + 'participantes_proveedores.csv',
-#         'Licitaciones': path_config.contrataciones_processed_csv_path + 'licitacion_data.csv',
-#         'Asignaciones': path_config.contrataciones_processed_csv_path + 'asignacion_data.csv',
-#         'Compradores': path_config.contrataciones_processed_csv_path + 'comprador_sesna_data.csv',
-#         'Documentos Tender': path_config.contrataciones_processed_csv_path + 'documentos_tender_sesna_data.csv',
-#         'Items ADQ': path_config.contrataciones_processed_csv_path + 'items_adq_sesna_data.csv',
-#         'Items Tender': path_config.contrataciones_processed_csv_path + 'tender_items_sesna_data.csv',
-#     }
-#
-#     # Ensure cols has enough elements
-#     while len(cols) < len(files.items()) // 2 + 1:
-#         cols.append([None, None])
-#
-#     for i, (filename, filelink) in enumerate(files.items()):
-#         if i < len(files.items()) - 1 or len(files.items()) % 2 == 0:  # Regular case
-#             if cols[i // 2][i % 2].button(f'Download {filename}', key=f'download_{i}'):
-#                 with st.spinner(f'Generando link de descarga para {filename}...'):
-#                     href = create_download_link(filelinks[i], filenames[i])()
-#                     st.markdown(href, unsafe_allow_html=True)
-#         else:  # Special case for the last button when the number of elements is odd
-#             if st.button(f'Download {filename}', key=f'download_{i}'):
-#                 with st.spinner(f'Generando link de descarga para {filename}...'):
-#                     href = create_download_link(filelinks[i], filenames[i])()
-#                     st.markdown(href, unsafe_allow_html=True)
-#
-#     # Add the 'Download All' button
-#     if st.button('Download All', key='download_all'):
-#         href = create_download_link_all(filelinks, 'all_data.zip')()
-#         st.markdown(href, unsafe_allow_html=True)
-#
-#     st.markdown("<br>", unsafe_allow_html=True)
-#     cols4 = st.columns([1, 1, 1])  # Create three columns
-#     inner_cols = cols4[2].columns([1, 1, 1, 1])  # Create two columns inside the middle column
-#     inner_cols[0].markdown(
-#         "<p style='text-align: center; font-family: Comic Sans MS; padding-top: 12px; white-space: nowrap;'>Made with love</p>",
-#         unsafe_allow_html=True)  # Center the text, change the font, and add padding
-#     inner_cols[2].image('docs/images/mottum2.png', use_column_width=True)
-#
-
 def create_download_button(table, filename, key, path=None):
     if path:
         if os.path.exists(path + filename):
@@ -378,16 +304,14 @@ def main():
     clear_directory(config.path_config.contrataciones_raw_unzip_path)
 
     with st.spinner(
-            'Estableciendo conexión con el servidor para la descarga. Esto puede tardar unos minutos. No cambie de '
-            'pestaña hasta que el proceso haya'
-            'acabado!'):
+            'Este proceso puede tardar unos minutos dependiendo de su conexión a internet'):
         logger.info("Inicio de Descarga y Extracción de datos")
-        progress_bar = st.progress(0, 'Iniciando descarga del archivo JSON')  # Initialize progress bar
+        progress_bar = st.progress(0, 'Estableciendo conexión con el servidor')  # Initialize progress bar
         try:
-            download_contrataciones_zip()
+            download_contrataciones_zip(pb=progress_bar)
             progress_bar.progress(50,
                                   'Descomprimiendo documentos')
-            unzip()
+            unzip(pb=progress_bar)
             progress_bar.progress(100)  # Update progress bar to 100% as we only have one function
         # process_large_json(config.path_config.contrataciones_raw_path)
         except Exception as e:
