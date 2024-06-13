@@ -37,7 +37,7 @@ RAW_DATA_PATH = path_config.contrataciones_raw_path
 UNZIP_DATA_PATH = path_config.contrataciones_raw_unzip_path
 
 
-def download_contrataciones_zip(url=URL_CONTRATACIONES):
+def download_contrataciones_zip(url=URL_CONTRATACIONES, pb=None):
     check_path(RAW_DATA_PATH)
     response = requests.get(url, stream=True, verify=False)
     response.raise_for_status()
@@ -49,6 +49,9 @@ def download_contrataciones_zip(url=URL_CONTRATACIONES):
         for chunk in response.iter_content(chunk_size=2048 * 2048):
             progress_bar.update(len(chunk))
             f.write(chunk)
+            if pb is not None:
+                pb.progress((progress_bar.n / total_size_in_bytes) / 2,
+                            f'Descargando archivo JSON de Compranet...')
     progress_bar.close()
 
     if total_size_in_bytes != 0 and progress_bar.n != total_size_in_bytes:
@@ -57,7 +60,7 @@ def download_contrataciones_zip(url=URL_CONTRATACIONES):
     logger.info("Archivo descargado")
 
 
-def unzip(zip_file_path=RAW_DATA_PATH, unzip_path=UNZIP_DATA_PATH):
+def unzip(zip_file_path=RAW_DATA_PATH, unzip_path=UNZIP_DATA_PATH, pb=None):
     if os.path.exists(zip_file_path):
         with ZipFile(zip_file_path, 'r') as zip_file:
             file = zip_file.namelist()[0]
@@ -68,6 +71,9 @@ def unzip(zip_file_path=RAW_DATA_PATH, unzip_path=UNZIP_DATA_PATH):
                     for chunk in iter(lambda: zf.read(2048 * 2048), b''):
                         fout.write(chunk)
                         pbar.update(len(chunk))
+                        if pb is not None:
+                            pb.progress(0.5 + (pbar.n / file_info.file_size) / 2,
+                                        f'Extrayendo Documentos JSON del archivo descargado...')
 
         logger.info("Extracción completada con éxito.")
         logger.info(f"Archivo extraído: {file}")
@@ -82,7 +88,3 @@ def check_path(path):
         logger.info("El archivo ya existe")
     else:
         logger.info("El archivo no existe")
-
-
-# download_contrataciones_zip(url=URL_CONTRATACIONES)
-# unzip(zip_file_path=RAW_DATA_PATH, unzip_path=UNZIP_DATA_PATH)
