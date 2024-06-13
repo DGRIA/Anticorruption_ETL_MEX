@@ -1,0 +1,23 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8889:8888"
+      - "8502:8501"
+    depends_on:
+      - db
+    environment:
+      - MONGO_URL=mongodb://db:27017/
+    restart: on-failure
+  db:
+    image: mongo:latest
+    volumes:
+      - mongodb_data:/data/db
+    ports:
+      - "27017:27017"
+    restart: unless-stopped
+
+volumes:
+  mongodb_data:
