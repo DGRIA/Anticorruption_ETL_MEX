@@ -353,7 +353,7 @@ if __name__ == '__main__':
 
     # Create navigation menu
 
-    st.session_state.page = st.radio('',
+    st.session_state.page = st.radio('Ejecución del ETL',
         ['1. Introducción',
          '2. Descarga del servidor y descompresión',
          '3. Populate MongoDB',
