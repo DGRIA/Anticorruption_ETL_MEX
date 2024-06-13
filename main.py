@@ -115,8 +115,8 @@ def start_populate():
             f" Tiene un tamaño de {get_file_size(path_config.contrataciones_raw_unzip_path + CONTRATACIONES_JSON)} GB.")
     else:
         st.error(
-            f"El archivo `{CONTRATACIONES_JSON}` no se encuentra en el directorio `{path_config.contrataciones_raw_unzip_path}`."
-            f" Es necesario descargarlo en el paso previo.")
+            f"El archivo `{CONTRATACIONES_JSON}` no se encuentra en el directorio "
+            f"`{path_config.contrataciones_raw_unzip_path}`. Es necesario descargarlo en el paso previo.")
     cols_button = st.columns([1, 1, 1])
     if cols_button[1].button('Iniciar Populate'):
         with st.spinner('Insertando datos en MongoDB...'):
@@ -354,11 +354,11 @@ if __name__ == '__main__':
     # Create navigation menu
 
     st.session_state.page = st.radio('Ejecución del ETL',
-        ['1. Introducción',
-         '2. Descarga del servidor y descompresión',
-         '3. Populate MongoDB',
-         '4. Extracción de datos de MongoDB',
-         '5. Acceso a tablas de resultados [.csv]'])
+                                     ['1. Introducción',
+                                      '2. Descarga del servidor y descompresión',
+                                      '3. Populate MongoDB',
+                                      '4. Extracción de datos de MongoDB',
+                                      '5. Acceso a tablas de resultados [.csv]'])
 
     # Display the selected page
     if st.session_state.page == '1. Introducción':
