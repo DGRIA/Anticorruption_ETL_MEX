@@ -74,7 +74,7 @@ def process_large_json(file_path, max_lines=5000, progress_bar=None):
                 insert_data_to_mongodb(chunk)
                 chunk = []
                 if progress_bar:
-                    progress_bar.progress(i / 137000, f"Processing JSON file ({i} records)")
+                    progress_bar.progress(i / 2742267, f"Processing JSON file ({i} records)")
         if chunk:  # insert remaining records in the chunk
             insert_data_to_mongodb(chunk)
     progress_bar.progress(1)
