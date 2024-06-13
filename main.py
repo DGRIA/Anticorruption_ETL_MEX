@@ -78,7 +78,7 @@ def show_intro():
 
 
 def start_download_and_unzip():
-    st.markdown(f"En esta pestaña se realiza la descarga de {CONTRATACIONES_URL} y propia extracción.")
+    st.markdown(f"En esta pestaña se realiza la descarga desde [Compranet]({CONTRATACIONES_URL}) y propia extracción.")
 
     if os.path.exists(path_config.contrataciones_raw_unzip_path + CONTRATACIONES_JSON):
         st.warning(
