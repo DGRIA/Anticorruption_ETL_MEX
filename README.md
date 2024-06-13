@@ -151,9 +151,24 @@ herramienta Docker Desktop desde el siguiente enlace:
 
 A continuación, se indican los pasos para iniciar el contenedor Docker y acceder a las diferentes funcionalidades.
 
-```bash
-docker-compose up --build
+1. **Clonar el Repositorio**. Para comenzar, debe clonar este repositorio en su máquina local utilizando el siguiente
+   comando:
+
+```bash 
+git clone https://github.com/MottumData/Anticorruption_ETL_MEX.git
 ```
+
+2. **Navegar al directorio del proyecto**. Después de clonar el repositorio, navegue al directorio del proyecto:
+
+```bash
+cd Anticorruption_ETL_MEX
+```
+3. **Construir y ejecutar el contenedor Docker**. Para construir y ejecutar el contenedor Docker, ejecute el siguiente
+   comando:
+```bash
+docker-compose up --build # -d para ejecutar en segundo plano
+```
+
 
 Una vez ejecutado el contenedor de Docker, podrá acceder a las interfaces de usuario a través de los siguientes enlaces:
 
