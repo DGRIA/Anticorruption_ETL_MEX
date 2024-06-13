@@ -138,7 +138,7 @@ def start_extraction():
     db = connect_to_mongodb()
     # Set a uniform width for all buttons
     '''
-    Haz click en la tabla(s) que deseas exportar y continúa al siguiente paso. Las limpiezas 
+    Haz clic en la tabla(s) que deseas exportar y continúa al siguiente paso. Las limpiezas 
     necesarias se realizan de manera implícita en aquellas que las requieran.
     '''
     st.markdown("""
@@ -176,12 +176,12 @@ def start_extraction():
             st.success('Extracción de Documentos Tender fue un éxito.')
     # Items ADQ
     with st.spinner('Extrayendo la tabla de Item ADQ de MongoDB...'):
-        if st.button('Extraer Item ADQ', key='button6', type='secondary'):
+        if st.button('Extraer Ítem ADQ', key='button6', type='secondary'):
             extract_item_adq(db)
             st.success('Extracción de Items ADQ fue un éxito.')
     # Items Tender
     with st.spinner('Extrayendo la tabla de Item Tender de MongoDB...'):
-        if st.button('Extraer Item Tender', key='button7', type='secondary'):
+        if st.button('Extraer Ítem Tender', key='button7', type='secondary'):
             extract_item_tender(db)
             st.success('Extracción de Items Tender fue un éxito.')
     # Extract all tables
@@ -223,7 +223,7 @@ def create_download_button(table, filename, key, path=None):
                 with st.spinner(f'Generando link de descarga para {table}...'):
                     href = create_download_link(table, filename)()
                     st.markdown(href, unsafe_allow_html=True)
-        elif table == 'Todas las tablas':
+        elif table == 'todas las tablas':
             if st.button(f'Descargar {table}', key=key, type='primary'):
                 with st.spinner(f'Generando link de descarga para {table}...'):
                     href = create_download_link_all(filename, 'all_data.zip')()
@@ -257,18 +257,18 @@ def download_results():
             'documentos_tender_sesna_data.csv',
         'Items ADQ': 'items_adq_sesna_data.csv',
         'Items Tender': 'tender_items_sesna_data.csv',
-        'Todas las tablas': path_config.contrataciones_processed_csv_path
+        'todas las tablas': path_config.contrataciones_processed_csv_path
     }
 
     cols = st.columns(2)
 
     # Add buttons to columns
     for i, (table, file_name) in enumerate(files.items()):
-        if table != 'Todas las tablas':
+        if table != 'todas las tablas':
             create_download_button(table=table, filename=file_name, key=f'download_{i}',
                                    path=path_config.contrataciones_processed_csv_path)
         else:
-            create_download_button(table='Todas las tablas', filename=files['Todas las tablas'], key=f'download_{i}',
+            create_download_button(table='todas las tablas', filename=files['todas las tablas'], key=f'download_{i}',
                                    path=path_config.contrataciones_processed_csv_path)
 
     st.markdown("<br>", unsafe_allow_html=True)
@@ -322,7 +322,7 @@ def main():
 if __name__ == '__main__':
     st.markdown('''
                 <h1 style='text-align: center; color: black; font-size: 30px;'>Servicio de ingeniería de datos para la extracción,
-                transformación y carga del Programa de Anticorrupción.
+                transformación y carga (ETL) del Programa de Anticorrupción
                 </h1> 
                 '''
                 , unsafe_allow_html=True)
@@ -333,7 +333,7 @@ if __name__ == '__main__':
 
     st.sidebar.markdown(
         """
-        La secretaria ejecutiva del Sistema Nacional Anticorrupción 
+        La Secretaria Ejecutiva del Sistema Nacional Anticorrupción 
         (SESNA) es el organismo de apoyo técnico dedicado al combate 
         contra la corrupción en México.
         """
@@ -344,7 +344,7 @@ if __name__ == '__main__':
     st.sidebar.markdown(
         """
         Esta página ha sido desarrollada por [mottum](https://mottum.io/) con el fin de
-        estandarizar, transformar y analizar los datos del Programa de anticorrupción.
+        estandarizar, transformar y analizar los datos del Programa de Anticorrupción.
         """
     )
     # Initialize session state variables
@@ -353,12 +353,12 @@ if __name__ == '__main__':
 
     # Create navigation menu
 
-    st.session_state.page = st.radio('Process',
-                                     ['1. Introducción',
-                                      '2. Descarga del servidor y descompresión',
-                                      '3. Populate MongoDB',
-                                      '4. Extracción de datos de MongoDB',
-                                      '5. Acceso a tablas de resultados [.csv]'])
+    st.session_state.page = st.radio('',
+        ['1. Introducción',
+         '2. Descarga del servidor y descompresión',
+         '3. Populate MongoDB',
+         '4. Extracción de datos de MongoDB',
+         '5. Acceso a tablas de resultados [.csv]'])
 
     # Display the selected page
     if st.session_state.page == '1. Introducción':
@@ -391,13 +391,13 @@ if __name__ == '__main__':
 
     st.sidebar.markdown(
         """
-        Visita los siguientes links para más información:
+        Visita los siguientes enlaces para más información:
         """
     )
 
     st.sidebar.markdown(
         """
-    - [Link al repositorio](https://github.com/MottumData/Anticorruption_ETL_MEX)
+    - [Repositorio](https://github.com/MottumData/Anticorruption_ETL_MEX)
     - [Jupyter](http://localhost:8889/lab)
     """
     )
