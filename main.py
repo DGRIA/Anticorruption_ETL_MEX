@@ -200,10 +200,13 @@ def start_upload_and_unzip():
 
 
 def start_populate():
+    # st.markdown(
+    #     f"El siguiente paso es la inserción de los datos en MongoDB. La base de datos establecida en la configuración "
+    #     f"es: `{DB_NAME}`. La colección establecida en la configuración es: `{COLLECTION_NAME}`. Actualmente tiene una cantidad de "
+    #     f"{get_collection_count()} documentos.")
     st.markdown(
         f"El siguiente paso es la inserción de los datos en MongoDB. La base de datos establecida en la configuración "
-        f"es: `{DB_NAME}`. La colección establecida en la configuración es: `{COLLECTION_NAME}`. Actualmente tiene una cantidad de "
-        f"{get_collection_count()} documentos.")
+        f"es: `{DB_NAME}`. La colección establecida en la configuración es: `{COLLECTION_NAME}`.")
 
     if os.path.exists(path_config.contrataciones_raw_unzip_path + CONTRATACIONES_JSON):
         st.markdown(
