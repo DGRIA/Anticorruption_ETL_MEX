@@ -72,7 +72,7 @@ DB_URL = os.getenv('MONGO_URL', 'mongodb://localhost:27017')
 # JSON Files
 CONTRATACIONES_URL = "https://compranetinfo.hacienda.gob.mx/dabiertos/contrataciones_arr.json.zip"
 CONTRATACIONES_JSON = 'contratacionesabiertas_bulk.json'  # For sample: Contrataciones.Sample_Contratos_EDCA_V2.json
-
+CONTRATACIONES_ZIP = 'contrataciones_arr.json.zip'
 # Logger setup
 logger_config = LoggerConfig()
 logger_config.setup()

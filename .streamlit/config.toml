@@ -1,3 +1,11 @@
 [server]
-maxUploadSize = 440000
-maxMessageSize = 440000
+maxUploadSize = 5000
+maxMessageSize = 5000
+enableXsrfProtection = false
+enableCORS = false
+
+[browser]
+gatherUsageStats = false
+
+
+

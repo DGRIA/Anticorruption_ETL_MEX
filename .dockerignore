@@ -152,4 +152,4 @@ data/
 !data/Processed/csv_files/.gitkeep
 !/data/Processed/parquet_files/.gitkeep
 !/data/Raw/.gitkeep
-
+#!/data/Raw/contrataciones_arr.json.zip

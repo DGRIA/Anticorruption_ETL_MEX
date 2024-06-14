@@ -48,7 +48,7 @@ def create_download_link_all(directory, zip_filename):
                 zipf.write(os.path.join(directory, filename), arcname=filename)
 
         # Read the ZIP file into memory
-        with open(path_config.data_path + zip_filename, 'rb') as f:
+        with open(path_config.data_path + '/' + zip_filename, 'rb') as f:
             bytes = f.read()
             b64 = base64.b64encode(bytes).decode()  # some strings <-> bytes conversions necessary here
             href = f'<a href="data:file/zip;base64,{b64}" download="{zip_filename}">Download {zip_filename}</a>'
@@ -81,8 +81,9 @@ def start_download_and_unzip():
     st.markdown(f"En esta pestaña se realiza la descarga desde [Compranet]({CONTRATACIONES_URL}) y propia extracción.")
 
     if os.path.exists(path_config.contrataciones_raw_unzip_path + CONTRATACIONES_JSON):
-        st.warning(
-            f"El archivo `{CONTRATACIONES_JSON}` ya se encuentra en el directorio `{path_config.contrataciones_raw_unzip_path + CONTRATACIONES_JSON}`. "
+        st.info(
+            f"El archivo `{CONTRATACIONES_JSON}` ya se encuentra en el directorio "
+            f"`{path_config.contrataciones_raw_unzip_path + CONTRATACIONES_JSON}`. "
             f"Tiene un tamaño de {get_file_size(path_config.contrataciones_raw_unzip_path + CONTRATACIONES_JSON)} GB."
             f" Si desea volver a descargarlo inicie el proceso de descarga")
     else:
@@ -99,6 +100,101 @@ def start_download_and_unzip():
     inner_cols = cols[2].columns([1, 1, 1, 1])  # Create two columns inside the middle column
     inner_cols[0].markdown(
         "<p style='text-align: center; font-family: Comic Sans MS; padding-top: 12px; white-space: nowrap;'>Made with love</p>",
+        unsafe_allow_html=True)  # Center the text, change the font, and add padding
+    inner_cols[2].image('docs/images/mottum2.png', use_column_width=True)
+
+
+# def start_upload_and_unzip():
+#     st.markdown(
+#         "En el caso de que ya tengas el archivo descargado, puedes subirlo y descomprimirlo aquí. Para la descarga "
+#         "manual del archivo, puedes hacerlo desde [Compranet]("
+#         "https://compranetinfo.hacienda.gob.mx/dabiertos/contrataciones_arr.json.zip). "
+#         "En el caso de que ya esté subido el archivo, puedes descomprimirlo de nuevo.")
+#
+#     if os.path.exists(path_config.contrataciones_raw_unzip_path + CONTRATACIONES_JSON):
+#         st.info(
+#             f"El archivo `{CONTRATACIONES_ZIP}` ya se encuentra en el directorio "
+#             f"`{path_config.contrataciones_raw_unzip_path}`. Tiene un tamaño de "
+#             f"{get_file_size(path_config.contrataciones_raw_unzip_path + CONTRATACIONES_ZIP)} GB.")
+#
+#     uploaded_file = st.file_uploader("Elige el archivo JSON comprimido", type=['zip'])
+#     with st.spinner('Subiendo archivo...'):
+#         if uploaded_file is not None:
+#             # To read file as bytes:
+#             # bytes_data = uploaded_file.read()
+#             with open(os.path.join(path_config.contrataciones_raw_unzip_path, 'contrataciones_arr.json.zip'),
+#                       'wb') as f:
+#                 for chunk in iter(lambda: uploaded_file.read(1024 * 1024), b''):
+#                     f.write(chunk)
+#
+#             st.success(
+#                 f"Archivo ZIP subido: {uploaded_file.name}. Guardado en Streamlit como `contrataciones_arr.json.zip`.")
+#
+#     if os.path.exists(path_config.contrataciones_raw_unzip_path + CONTRATACIONES_ZIP):
+#         logger.info(f"El archivo {CONTRATACIONES_JSON} ya se encuentra en el directorio.")
+#         cols_button = st.columns([1, 1, 1])
+#         if cols_button[1].button('Descomprimir archivo', key='upload_unzip', type='secondary'):
+#             with st.spinner(f"Descomprimiendo archivo {CONTRATACIONES_ZIP}..."):
+#                 progress_bar = st.progress(0, 'Iniciando descompresión...')
+#                 unzip(pb=progress_bar)
+#                 progress_bar.progress(100)
+#             st.success('Archivo descomprimido con éxito. Ya puede popular la base de datos.')
+#
+#
+
+
+def start_upload_and_unzip():
+    st.markdown(
+        "En el caso de que ya tengas el archivo descargado, puedes subirlo y descomprimirlo aquí. Para la descarga "
+        "manual del archivo, puedes hacerlo desde [Compranet]("
+        "https://compranetinfo.hacienda.gob.mx/dabiertos/contrataciones_arr.json.zip)."
+        "En el caso de que ya esté subido el archivo, puedes descomprimirlo de nuevo.")
+
+    if os.path.exists(path_config.contrataciones_raw_unzip_path + CONTRATACIONES_JSON):
+        print("El archivo ya se encuentra en el directorio.")
+        st.info(
+            f"El archivo `{CONTRATACIONES_ZIP}` ya se encuentra en el directorio "
+            f"`{path_config.contrataciones_raw_unzip_path}`. Tiene un tamaño de "
+            f"{get_file_size(path_config.contrataciones_raw_unzip_path + CONTRATACIONES_ZIP)} GB.")
+    print("El archivo no se encuentra en el directorio.")
+    uploaded_file = st.file_uploader("Elige el archivo JSON comprimido", type=['zip'])
+    with st.spinner('Subiendo archivo...'):
+        logger.info(f"Subiendo archivo {uploaded_file}")
+        if uploaded_file is not None:
+            logger.info(f"El archivo no está vacío")
+            # To read file as bytes:
+            # bytes_data = uploaded_file.read()
+            try:
+                with open(os.path.join(path_config.contrataciones_raw_unzip_path, 'contrataciones_arr.json.zip'),
+                          'wb') as f:
+                    logger.info(f"Guardando archivo en {path_config.contrataciones_raw_unzip_path}")
+                    for chunk in iter(lambda: uploaded_file.read(1024 * 1024), b''):
+                        f.write(chunk)
+                    logger.info(f"Archivo guardado con éxito.")
+                st.success(
+                    f"Archivo ZIP subido: {uploaded_file.name}. Guardado en Streamlit como `contrataciones_arr.json.zip`.")
+            except Exception as e:
+                st.error(f"Error al guardar el archivo: {str(e)}")
+
+    if os.path.exists(path_config.contrataciones_raw_unzip_path + CONTRATACIONES_ZIP):
+        logger.info(f"El archivo {CONTRATACIONES_JSON} ya se encuentra en el directorio.")
+        cols_button = st.columns([1, 1, 1])
+        if cols_button[1].button('Descomprimir archivo', key='upload_unzip', type='secondary'):
+            with st.spinner(f"Descomprimiendo archivo {CONTRATACIONES_ZIP}..."):
+                try:
+                    progress_bar = st.progress(0, 'Iniciando descompresión...')
+                    unzip(pb=progress_bar)
+                    progress_bar.progress(100)
+                    st.success('Archivo descomprimido con éxito. Ya puede popular la base de datos.')
+                except Exception as e:
+                    st.error(f"Error al descomprimir el archivo: {str(e)}")
+
+    st.markdown("<br>", unsafe_allow_html=True)
+    cols = st.columns([1, 1, 1])  # Create three columns
+    inner_cols = cols[2].columns([1, 1, 1, 1])  # Create two columns inside the middle column
+    inner_cols[0].markdown(
+        "<p style='text-align: center; font-family: Comic Sans MS; padding-top: 12px; white-space: nowrap;'>Made with "
+        "love</p>",
         unsafe_allow_html=True)  # Center the text, change the font, and add padding
     inner_cols[2].image('docs/images/mottum2.png', use_column_width=True)
 
@@ -311,7 +407,7 @@ def main():
             download_contrataciones_zip(pb=progress_bar)
             progress_bar.progress(50,
                                   'Descomprimiendo documentos')
-            unzip(pb=progress_bar)
+            unzip(pb=progress_bar, progress=0.5)
             progress_bar.progress(100)  # Update progress bar to 100% as we only have one function
         # process_large_json(config.path_config.contrataciones_raw_path)
         except Exception as e:
@@ -356,6 +452,7 @@ if __name__ == '__main__':
     st.session_state.page = st.radio('Ejecución del ETL',
                                      ['1. Introducción',
                                       '2. Descarga del servidor y descompresión',
+                                      'Subida y descompresión de archivos',
                                       '3. Populate MongoDB',
                                       '4. Extracción de datos de MongoDB',
                                       '5. Acceso a tablas de resultados [.csv]'])
@@ -365,6 +462,8 @@ if __name__ == '__main__':
         show_intro()
     elif st.session_state.page == '2. Descarga del servidor y descompresión':
         start_download_and_unzip()
+    elif st.session_state.page == 'Subida y descompresión de archivos':
+        start_upload_and_unzip()
     elif st.session_state.page == '3. Populate MongoDB':
         with st.spinner('Recopilando información de MongoDB...'):
             start_populate()

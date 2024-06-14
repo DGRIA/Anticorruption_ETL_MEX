@@ -39,28 +39,28 @@ UNZIP_DATA_PATH = path_config.contrataciones_raw_unzip_path
 
 def download_contrataciones_zip(url=URL_CONTRATACIONES, pb=None):
     check_path(RAW_DATA_PATH)
-    response = requests.get(url, stream=True, verify=False)
-    response.raise_for_status()
+    with requests.get(url, stream=True, verify=False) as response:
+        response.raise_for_status()
 
-    total_size_in_bytes = int(response.headers.get('content-length', 0))
-    progress_bar = tqdm(total=total_size_in_bytes, unit='iB', unit_scale=True)
+        total_size_in_bytes = int(response.headers.get('content-length', 0))
+        progress_bar = tqdm(total=total_size_in_bytes, unit='iB', unit_scale=True)
 
-    with open(RAW_DATA_PATH, 'wb') as f:
-        for chunk in response.iter_content(chunk_size=2048 * 2048):
-            progress_bar.update(len(chunk))
-            f.write(chunk)
-            if pb is not None:
-                pb.progress((progress_bar.n / total_size_in_bytes) / 2,
-                            f'Descargando archivo JSON de Compranet...')
-    progress_bar.close()
+        with open(RAW_DATA_PATH, 'wb') as f:
+            for chunk in response.iter_content(chunk_size=2048 * 2048):
+                progress_bar.update(len(chunk))
+                f.write(chunk)
+                if pb is not None:
+                    pb.progress((progress_bar.n / total_size_in_bytes) / 2,
+                                f'Descargando archivo JSON de Compranet...')
+        progress_bar.close()
 
-    if total_size_in_bytes != 0 and progress_bar.n != total_size_in_bytes:
-        logger.error("ERROR, ha ocurrido un error al descargar el archivo")
+        if total_size_in_bytes != 0 and progress_bar.n != total_size_in_bytes:
+            logger.error("ERROR, ha ocurrido un error al descargar el archivo")
 
-    logger.info("Archivo descargado")
+        logger.info("Archivo descargado")
 
 
-def unzip(zip_file_path=RAW_DATA_PATH, unzip_path=UNZIP_DATA_PATH, pb=None):
+def unzip(zip_file_path=RAW_DATA_PATH, unzip_path=UNZIP_DATA_PATH, pb=None, progress=None):
     if os.path.exists(zip_file_path):
         with ZipFile(zip_file_path, 'r') as zip_file:
             file = zip_file.namelist()[0]
@@ -71,8 +71,11 @@ def unzip(zip_file_path=RAW_DATA_PATH, unzip_path=UNZIP_DATA_PATH, pb=None):
                     for chunk in iter(lambda: zf.read(2048 * 2048), b''):
                         fout.write(chunk)
                         pbar.update(len(chunk))
-                        if pb is not None:
-                            pb.progress(0.5 + (pbar.n / file_info.file_size) / 2,
+                        if pb is not None and progress is None:
+                            pb.progress((pbar.n / file_info.file_size),
+                                        f'Extrayendo Documentos JSON del archivo descargado...')
+                        if pb is not None and progress is not None:
+                            pb.progress(progress + (pbar.n / file_info.file_size) / 2,
                                         f'Extrayendo Documentos JSON del archivo descargado...')
 
         logger.info("Extracción completada con éxito.")
