@@ -60,7 +60,7 @@ def download_contrataciones_zip(url=URL_CONTRATACIONES, pb=None):
     logger.info("Archivo descargado")
 
 
-def unzip(zip_file_path=RAW_DATA_PATH, unzip_path=UNZIP_DATA_PATH, pb=None):
+def unzip(zip_file_path=RAW_DATA_PATH, unzip_path=UNZIP_DATA_PATH, pb=None, progress=None):
     if os.path.exists(zip_file_path):
         with ZipFile(zip_file_path, 'r') as zip_file:
             file = zip_file.namelist()[0]
@@ -72,7 +72,10 @@ def unzip(zip_file_path=RAW_DATA_PATH, unzip_path=UNZIP_DATA_PATH, pb=None):
                         fout.write(chunk)
                         pbar.update(len(chunk))
                         if pb is not None:
-                            pb.progress(0.5 + (pbar.n / file_info.file_size) / 2,
+                            pb.progress((pbar.n / file_info.file_size),
+                                        f'Extrayendo Documentos JSON del archivo descargado...')
+                        if pb is not None and progress is not None:
+                            pb.progress(progress + (pbar.n / file_info.file_size) / 2,
                                         f'Extrayendo Documentos JSON del archivo descargado...')
 
         logger.info("Extracción completada con éxito.")
