@@ -48,7 +48,7 @@ def create_download_link_all(directory, zip_filename):
                 zipf.write(os.path.join(directory, filename), arcname=filename)
 
         # Read the ZIP file into memory
-        with open(path_config.data_path + zip_filename, 'rb') as f:
+        with open(path_config.data_path + '/' + zip_filename, 'rb') as f:
             bytes = f.read()
             b64 = base64.b64encode(bytes).decode()  # some strings <-> bytes conversions necessary here
             href = f'<a href="data:file/zip;base64,{b64}" download="{zip_filename}">Download {zip_filename}</a>'
