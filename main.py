@@ -104,6 +104,45 @@ def start_download_and_unzip():
     inner_cols[2].image('docs/images/mottum2.png', use_column_width=True)
 
 
+# def start_upload_and_unzip():
+#     st.markdown(
+#         "En el caso de que ya tengas el archivo descargado, puedes subirlo y descomprimirlo aquí. Para la descarga "
+#         "manual del archivo, puedes hacerlo desde [Compranet]("
+#         "https://compranetinfo.hacienda.gob.mx/dabiertos/contrataciones_arr.json.zip). "
+#         "En el caso de que ya esté subido el archivo, puedes descomprimirlo de nuevo.")
+#
+#     if os.path.exists(path_config.contrataciones_raw_unzip_path + CONTRATACIONES_JSON):
+#         st.info(
+#             f"El archivo `{CONTRATACIONES_ZIP}` ya se encuentra en el directorio "
+#             f"`{path_config.contrataciones_raw_unzip_path}`. Tiene un tamaño de "
+#             f"{get_file_size(path_config.contrataciones_raw_unzip_path + CONTRATACIONES_ZIP)} GB.")
+#
+#     uploaded_file = st.file_uploader("Elige el archivo JSON comprimido", type=['zip'])
+#     with st.spinner('Subiendo archivo...'):
+#         if uploaded_file is not None:
+#             # To read file as bytes:
+#             # bytes_data = uploaded_file.read()
+#             with open(os.path.join(path_config.contrataciones_raw_unzip_path, 'contrataciones_arr.json.zip'),
+#                       'wb') as f:
+#                 for chunk in iter(lambda: uploaded_file.read(1024 * 1024), b''):
+#                     f.write(chunk)
+#
+#             st.success(
+#                 f"Archivo ZIP subido: {uploaded_file.name}. Guardado en Streamlit como `contrataciones_arr.json.zip`.")
+#
+#     if os.path.exists(path_config.contrataciones_raw_unzip_path + CONTRATACIONES_ZIP):
+#         logger.info(f"El archivo {CONTRATACIONES_JSON} ya se encuentra en el directorio.")
+#         cols_button = st.columns([1, 1, 1])
+#         if cols_button[1].button('Descomprimir archivo', key='upload_unzip', type='secondary'):
+#             with st.spinner(f"Descomprimiendo archivo {CONTRATACIONES_ZIP}..."):
+#                 progress_bar = st.progress(0, 'Iniciando descompresión...')
+#                 unzip(pb=progress_bar)
+#                 progress_bar.progress(100)
+#             st.success('Archivo descomprimido con éxito. Ya puede popular la base de datos.')
+#
+#
+
+
 def start_upload_and_unzip():
     st.markdown(
         "En el caso de que ya tengas el archivo descargado, puedes subirlo y descomprimirlo aquí. Para la descarga "
@@ -112,34 +151,43 @@ def start_upload_and_unzip():
         "En el caso de que ya esté subido el archivo, puedes descomprimirlo de nuevo.")
 
     if os.path.exists(path_config.contrataciones_raw_unzip_path + CONTRATACIONES_JSON):
+        print("El archivo ya se encuentra en el directorio.")
         st.info(
             f"El archivo `{CONTRATACIONES_ZIP}` ya se encuentra en el directorio "
             f"`{path_config.contrataciones_raw_unzip_path}`. Tiene un tamaño de "
             f"{get_file_size(path_config.contrataciones_raw_unzip_path + CONTRATACIONES_ZIP)} GB.")
-
+    print("El archivo no se encuentra en el directorio.")
     uploaded_file = st.file_uploader("Elige el archivo JSON comprimido", type=['zip'])
     with st.spinner('Subiendo archivo...'):
+        logger.info(f"Subiendo archivo {uploaded_file}")
         if uploaded_file is not None:
+            logger.info(f"El archivo no está vacío")
             # To read file as bytes:
             # bytes_data = uploaded_file.read()
-            with open(os.path.join(path_config.contrataciones_raw_unzip_path, 'contrataciones_arr.json.zip'),
-                      'wb') as f:
-                for chunk in iter(lambda: uploaded_file.read(1024 * 1024), b''):
-                    f.write(chunk)
-
-            st.success(
-                f"Archivo ZIP subido: {uploaded_file.name}. Guardado en Streamlit como `contrataciones_arr.json.zip`.")
+            try:
+                with open(os.path.join(path_config.contrataciones_raw_unzip_path, 'contrataciones_arr.json.zip'),
+                          'wb') as f:
+                    logger.info(f"Guardando archivo en {path_config.contrataciones_raw_unzip_path}")
+                    for chunk in iter(lambda: uploaded_file.read(1024 * 1024), b''):
+                        f.write(chunk)
+                    logger.info(f"Archivo guardado con éxito.")
+                st.success(
+                    f"Archivo ZIP subido: {uploaded_file.name}. Guardado en Streamlit como `contrataciones_arr.json.zip`.")
+            except Exception as e:
+                st.error(f"Error al guardar el archivo: {str(e)}")
 
     if os.path.exists(path_config.contrataciones_raw_unzip_path + CONTRATACIONES_ZIP):
         logger.info(f"El archivo {CONTRATACIONES_JSON} ya se encuentra en el directorio.")
         cols_button = st.columns([1, 1, 1])
         if cols_button[1].button('Descomprimir archivo', key='upload_unzip', type='secondary'):
             with st.spinner(f"Descomprimiendo archivo {CONTRATACIONES_ZIP}..."):
-                progress_bar = st.progress(0, 'Iniciando descompresión...')
-                unzip(pb=progress_bar)
-                progress_bar.progress(100)
-            st.success('Archivo descomprimido con éxito. Ya puede popular la base de datos.')
-
+                try:
+                    progress_bar = st.progress(0, 'Iniciando descompresión...')
+                    unzip(pb=progress_bar)
+                    progress_bar.progress(100)
+                    st.success('Archivo descomprimido con éxito. Ya puede popular la base de datos.')
+                except Exception as e:
+                    st.error(f"Error al descomprimir el archivo: {str(e)}")
 
     st.markdown("<br>", unsafe_allow_html=True)
     cols = st.columns([1, 1, 1])  # Create three columns
