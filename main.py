@@ -18,19 +18,20 @@ logger = logging.getLogger("Contrataciones")
 logger.setLevel(logging.INFO)
 
 
-def show_footer():
+def show_footer(show=False):
     """
     Función que muestra el footer de la página
     :return: None
     """
-    st.markdown("<br>", unsafe_allow_html=True)
-    cols = st.columns([1, 1, 1])  # Create three columns
-    inner_cols = cols[2].columns([1, 1, 1, 1])  # Create two columns inside the middle column
-    inner_cols[0].markdown(
-        "<p style='text-align: center; font-family: Comic Sans MS; padding-top: 12px; white-space: nowrap;'>Made with "
-        "love</p>",
-        unsafe_allow_html=True)  # Center the text, change the font, and add padding
-    inner_cols[2].image('docs/images/mottum2.png', use_column_width=True)
+    if show:
+        st.markdown("<br>", unsafe_allow_html=True)
+        cols = st.columns([1, 1, 1])  # Create three columns
+        inner_cols = cols[2].columns([1, 1, 1, 1])  # Create two columns inside the middle column
+        inner_cols[0].markdown(
+            "<p style='text-align: center; font-family: Comic Sans MS; padding-top: 12px; white-space: nowrap;'>Made with "
+            "love</p>",
+            unsafe_allow_html=True)  # Center the text, change the font, and add padding
+        inner_cols[2].image('docs/images/mottum2.png', use_column_width=True)
 
 
 def create_download_link(table, filename):
@@ -82,7 +83,7 @@ def show_intro():
         """
     ))
 
-    show_footer()
+    show_footer(True)
 
 
 def start_download_and_unzip():
@@ -103,7 +104,7 @@ def start_download_and_unzip():
     cols_button = st.columns([1, 1, 1])  # Create three columns for the button
     if cols_button[1].button('Inicio de descarga'):
         main()
-    show_footer()
+    show_footer(True)
 
 
 def start_upload_and_unzip():
@@ -154,7 +155,7 @@ def start_upload_and_unzip():
                 except Exception as e:
                     st.error(f"Error al descomprimir el archivo: {str(e)}")
 
-    show_footer()
+    show_footer(True)
 
 
 def start_populate():
@@ -184,7 +185,7 @@ def start_populate():
         st.error(
             f"El archivo `{CONTRATACIONES_JSON}` no se encuentra en el directorio "
             f"`{path_config.contrataciones_raw_path}`. Es necesario descargarlo y descomprimirlo los pasos previos.")
-    show_footer()
+    show_footer(True)
 
 
 def start_extraction():
@@ -265,7 +266,7 @@ def start_extraction():
             extract_progress_bar.progress(7 / 7, 'Extracción completa.')
         st.success('La extracción fue un éxito.')
 
-    show_footer()
+    show_footer(True)
 
 
 def create_download_button(table, filename, key, path=None, filenames=[]):
@@ -339,7 +340,7 @@ def download_results():
                                    path=path_config.contrataciones_processed_csv_path)
 
 
-show_footer()
+    show_footer(True)
 
 
 def main():
