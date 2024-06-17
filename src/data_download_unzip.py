@@ -4,24 +4,6 @@ import requests
 from zipfile import ZipFile
 import os
 import logging
-import sys
-
-# Save the original working directory
-#
-# current_file_path = os.path.abspath(__file__)
-#
-# # Get the parent directory of the current file
-# parent_dir = os.path.dirname(current_file_path)
-#
-# # Get the base directory of the repository
-# base_dir = os.path.dirname(parent_dir)
-#
-# config_path = os.path.join(base_dir, 'config.py')
-#
-# # Add the base directory to the system path
-# sys.path.append(base_dir)
-
-# Now you can import the config module
 from config import *
 
 # Deshabilitar los warnings de certificados SSL
@@ -38,8 +20,15 @@ UNZIP_DATA_PATH = path_config.contrataciones_raw_unzip_path
 
 
 def download_contrataciones_zip(url=URL_CONTRATACIONES, pb=None):
+    """
+    Función para descargar el archivo zip de las contrataciones
+    por partes.
+    :param url: Url del archivo a descargar
+    :param pb: Progreso de la descarga expresado en decimal
+    :return: None
+    """
     check_path(RAW_DATA_PATH)
-    with requests.get(url, stream=True, verify=False) as response:
+    with requests.get(url, stream=False, verify=False) as response:
         response.raise_for_status()
 
         total_size_in_bytes = int(response.headers.get('content-length', 0))
@@ -51,7 +40,8 @@ def download_contrataciones_zip(url=URL_CONTRATACIONES, pb=None):
                 f.write(chunk)
                 if pb is not None:
                     pb.progress((progress_bar.n / total_size_in_bytes) / 2,
-                                f'Descargando archivo JSON de Compranet...')
+                                f'Descargando archivo JSON de Compranet: '
+                                f'{round(((progress_bar.n / total_size_in_bytes) / 2) * 100, 2)} %')
         progress_bar.close()
 
         if total_size_in_bytes != 0 and progress_bar.n != total_size_in_bytes:
@@ -61,6 +51,14 @@ def download_contrataciones_zip(url=URL_CONTRATACIONES, pb=None):
 
 
 def unzip(zip_file_path=RAW_DATA_PATH, unzip_path=UNZIP_DATA_PATH, pb=None, progress=None):
+    """
+    Función para extraer por partes (chunks) el archivo zip descargado
+    :param zip_file_path: Ruta del archivo zip
+    :param unzip_path: Ruta de la carpeta donde se extraerá el archivo
+    :param pb: Barra de progreso (Streamlit
+    :param progress: Progreso de la extracción expresado en decimal
+    :return: None
+    """
     if os.path.exists(zip_file_path):
         with ZipFile(zip_file_path, 'r') as zip_file:
             file = zip_file.namelist()[0]
@@ -73,10 +71,11 @@ def unzip(zip_file_path=RAW_DATA_PATH, unzip_path=UNZIP_DATA_PATH, pb=None, prog
                         pbar.update(len(chunk))
                         if pb is not None and progress is None:
                             pb.progress((pbar.n / file_info.file_size),
-                                        f'Extrayendo Documentos JSON del archivo descargado...')
+                                        f'Extrayendo Documentos JSON del archivo adjuntado: '
+                                        f'{round((pbar.n / file_info.file_size) * 100, 2)} %')
                         if pb is not None and progress is not None:
                             pb.progress(progress + (pbar.n / file_info.file_size) / 2,
-                                        f'Extrayendo Documentos JSON del archivo descargado...')
+                                        f'Extrayendo Documentos JSON del archivo descargado: {round((progress + (pbar.n / file_info.file_size) / 2) * 100, 2)} %')
 
         logger.info("Extracción completada con éxito.")
         logger.info(f"Archivo extraído: {file}")
@@ -87,7 +86,27 @@ def unzip(zip_file_path=RAW_DATA_PATH, unzip_path=UNZIP_DATA_PATH, pb=None, prog
 
 
 def check_path(path):
+    """
+    Función para verificar si la ruta del archivo existe
+    :param path: Ruta del archivo
+    :return: None
+    """
     if os.path.exists(path):
         logger.info("El archivo ya existe")
     else:
         logger.info("El archivo no existe")
+
+
+def check_files_exist(file_list, directory):
+    """
+    Esta función comprueba si todos los archivos en una lista existen en un directorio específico.
+    :param directory: Directorio donde se encuentran los archivos.
+    :param file_list: Lista de archivos a comprobar.
+    :return: True si todos los archivos existen, False en caso contrario.
+    """
+    for filename in file_list:
+        if not os.path.exists(os.path.join(directory, filename)):
+            print(f"Archivo {filename} no encontrado en {directory}")
+            return False
+
+    return True
