@@ -5,7 +5,7 @@ import shutil
 from config import *
 import config
 from src.mongodb_utils import process_large_json, get_file_size, get_collection_count
-from src.data_download_unzip import download_contrataciones_zip, unzip
+from src.data_download_unzip import download_contrataciones_zip, unzip, check_files_exist
 from src.extraction_mongodb import extract_participantes_proveedores, extract_licitacion, extract_asignacion, \
     extract_comprador, extract_documentos_tender, extract_item_adq, extract_item_tender
 
@@ -19,6 +19,10 @@ logger.setLevel(logging.INFO)
 
 
 def show_footer():
+    """
+    Función que muestra el footer de la página
+    :return: None
+    """
     st.markdown("<br>", unsafe_allow_html=True)
     cols = st.columns([1, 1, 1])  # Create three columns
     inner_cols = cols[2].columns([1, 1, 1, 1])  # Create two columns inside the middle column
@@ -93,7 +97,8 @@ def start_download_and_unzip():
     else:
         st.error(
             f"El archivo de Contrataciones no se encuentra descargado."
-            f" Es necesario descargarlo para continuar con el proceso.")
+            f" Es necesario descargarlo para continuar con el proceso o adjuntarlo para su descompresión en la "
+            f"siguiente sección.")
 
     cols_button = st.columns([1, 1, 1])  # Create three columns for the button
     if cols_button[1].button('Inicio de descarga'):
@@ -106,7 +111,7 @@ def start_upload_and_unzip():
         "En el caso de que ya tengas el archivo descargado, puedes subirlo y descomprimirlo aquí. Para la descarga "
         "manual del archivo, puedes hacerlo desde [Compranet]("
         "https://compranetinfo.hacienda.gob.mx/dabiertos/contrataciones_arr.json.zip)."
-        "En el caso de que ya esté subido el archivo, puedes descomprimirlo de nuevo.")
+        " En el caso de que ya esté subido el archivo, puedes descomprimirlo de nuevo.")
 
     if os.path.exists(path_config.contrataciones_raw_unzip_path + CONTRATACIONES_JSON):
         print("El archivo ya se encuentra en el directorio.")
@@ -114,7 +119,11 @@ def start_upload_and_unzip():
             f"El archivo `{CONTRATACIONES_ZIP}` ya se encuentra en el directorio "
             f"`{path_config.contrataciones_raw_unzip_path}`. Tiene un tamaño de "
             f"{get_file_size(path_config.contrataciones_raw_unzip_path + CONTRATACIONES_ZIP)} GB.")
-    print("El archivo no se encuentra en el directorio.")
+    elif os.path.exists(path_config.contrataciones_raw_path):
+        st.info(
+            f"El archivo `{CONTRATACIONES_ZIP}` ya se encuentra en el directorio "
+            f"`{path_config.contrataciones_raw_path}`. Tiene un tamaño de "
+            f"{get_file_size(path_config.contrataciones_raw_path)} GB. Sólo es necesaria la descompresión.")
     uploaded_file = st.file_uploader("Elige el archivo JSON comprimido", type=['zip'])
     with st.spinner('Subiendo archivo...'):
         logger.info(f"Subiendo archivo {uploaded_file}")
@@ -149,10 +158,6 @@ def start_upload_and_unzip():
 
 
 def start_populate():
-    # st.markdown(
-    #     f"El siguiente paso es la inserción de los datos en MongoDB. La base de datos establecida en la configuración "
-    #     f"es: `{DB_NAME}`. La colección establecida en la configuración es: `{COLLECTION_NAME}`. Actualmente tiene una cantidad de "
-    #     f"{get_collection_count()} documentos.")
     st.markdown(
         f"El siguiente paso es la inserción de los datos en MongoDB. La base de datos establecida en la configuración "
         f"es: `{DB_NAME}`. La colección establecida en la configuración es: `{COLLECTION_NAME}`.")
@@ -161,18 +166,24 @@ def start_populate():
         st.markdown(
             f"El archivo `{CONTRATACIONES_JSON}` se usará para popular la base de datos."
             f" Tiene un tamaño de {get_file_size(path_config.contrataciones_raw_unzip_path + CONTRATACIONES_JSON)} GB.")
+        cols_button = st.columns([1, 1, 1])
+        if cols_button[1].button('Iniciar Populate'):
+            with st.spinner('Insertando datos en MongoDB...'):
+                progress_bar = st.progress(0, 'Conectando con la base de datos...')
+                process_large_json(path_config.contrataciones_raw_unzip_path + CONTRATACIONES_JSON,
+                                   progress_bar=progress_bar)
+                progress_bar.progress(100, 'Datos insertados en MongoDB.')
+
+    elif (os.path.exists(path_config.contrataciones_raw_path) and
+          (not os.path.exists(path_config.contrataciones_raw_unzip_path + CONTRATACIONES_JSON))):
+        st.warning(
+            f"El archivo `{CONTRATACIONES_JSON}` no se encuentra en el directorio "
+            f"`{path_config.contrataciones_raw_unzip_path}`. Pero sí está `{CONTRATACIONES_ZIP}`. Sólo "
+            f"es necesario descomprimirlo en el paso previo.")
     else:
         st.error(
             f"El archivo `{CONTRATACIONES_JSON}` no se encuentra en el directorio "
-            f"`{path_config.contrataciones_raw_unzip_path}`. Es necesario descargarlo en el paso previo.")
-    cols_button = st.columns([1, 1, 1])
-    if cols_button[1].button('Iniciar Populate'):
-        with st.spinner('Insertando datos en MongoDB...'):
-            progress_bar = st.progress(0, 'Conectando con la base de datos...')
-            process_large_json(path_config.contrataciones_raw_unzip_path + CONTRATACIONES_JSON,
-                               progress_bar=progress_bar)
-            progress_bar.progress(100, 'Datos insertados en MongoDB.')
-
+            f"`{path_config.contrataciones_raw_path}`. Es necesario descargarlo y descomprimirlo los pasos previos.")
     show_footer()
 
 
@@ -192,39 +203,46 @@ def start_extraction():
     """, unsafe_allow_html=True)
 
     # Proveedores
-    with st.spinner('Extrayendo la tabla de Participantes Proveedores de MongoDB...'):
-        if st.button('Extraer Proveedores', key='button1', type='secondary'):
-            extract_participantes_proveedores(db)
+    if st.button('Extraer Proveedores', key='button1', type='secondary'):
+        with st.spinner('Extrayendo la tabla de Participantes Proveedores de MongoDB...'):
+            progress_bar_proveedores = st.progress(0, 'Extrayendo Participantes Proveedores...')
+            extract_participantes_proveedores(db, progress_bar_proveedores)
             st.success('Extracción de Participantes Proveedores fue un éxito.')
     # Licitaciones
-    with st.spinner('Extrayendo la tabla de Licitaciones de MongoDB...'):
-        if st.button('Extraer Licitaciones', key='button2', type='secondary'):
-            extract_licitacion(db)
+    if st.button('Extraer Licitaciones', key='button2', type='secondary'):
+        with st.spinner('Extrayendo la tabla de Licitaciones de MongoDB...'):
+            progress_bar_licitaciones = st.progress(0, 'Extrayendo Licitaciones...')
+            extract_licitacion(db, progress_bar_licitaciones)
             st.success('Extracción de Licitaciones fue un éxito.')
     # Asignaciones
-    with st.spinner('Extrayendo la tabla de Asignaciones de MongoDB...'):
-        if st.button('Extraer Asignaciones', key='button3', type='secondary'):
-            extract_asignacion(db)
+    if st.button('Extraer Asignaciones', key='button3', type='secondary'):
+        with st.spinner('Extrayendo la tabla de Asignaciones de MongoDB...'):
+            progress_bar_asignaciones = st.progress(0, 'Extrayendo Asignaciones...')
+            extract_asignacion(db, progress_bar_asignaciones)
             st.success('Extracción de Asignaciones fue un éxito.')
     # Compradores
-    with st.spinner('Extrayendo la tabla de Compradores de MongoDB...'):
-        if st.button('Extraer Compradores', key='button4', type='secondary'):
-            extract_comprador(db)
+    if st.button('Extraer Compradores', key='button4', type='secondary'):
+        with st.spinner('Extrayendo la tabla de Compradores de MongoDB...'):
+            progress_bar_compradores = st.progress(0, 'Extrayendo Compradores...')
+            extract_comprador(db, progress_bar_compradores)
             st.success('Extracción de Compradores fue un éxito.')
     # Documentos Tender
-    with st.spinner('Extrayendo la tabla de Documentos Tender de MongoDB...'):
-        if st.button('Extraer Documentos Tender', key='button5', type='secondary'):
-            extract_documentos_tender(db)
+    if st.button('Extraer Documentos Tender', key='button5', type='secondary'):
+        with st.spinner('Extrayendo la tabla de Documentos Tender de MongoDB...'):
+            progress_bar_documentos_tender = st.progress(0, 'Extrayendo Documentos Tender...')
+            extract_documentos_tender(db, progress_bar_documentos_tender)
             st.success('Extracción de Documentos Tender fue un éxito.')
     # Items ADQ
-    with st.spinner('Extrayendo la tabla de Item ADQ de MongoDB...'):
-        if st.button('Extraer Ítem ADQ', key='button6', type='secondary'):
-            extract_item_adq(db)
+    if st.button('Extraer Ítem ADQ', key='button6', type='secondary'):
+        with st.spinner('Extrayendo la tabla de Item ADQ de MongoDB...'):
+            progress_bar_item_adq = st.progress(0, 'Extrayendo Items ADQ...')
+            extract_item_adq(db, progress_bar_item_adq)
             st.success('Extracción de Items ADQ fue un éxito.')
     # Items Tender
-    with st.spinner('Extrayendo la tabla de Item Tender de MongoDB...'):
-        if st.button('Extraer Ítem Tender', key='button7', type='secondary'):
-            extract_item_tender(db)
+    if st.button('Extraer Ítem Tender', key='button7', type='secondary'):
+        with st.spinner('Extrayendo la tabla de Item Tender de MongoDB...'):
+            progress_bar_item_tender = st.progress(0, 'Extrayendo Items Tender...')
+            extract_item_tender(db, progress_bar_item_tender)
             st.success('Extracción de Items Tender fue un éxito.')
     # Extract all tables
     if st.button('Extraer todas las tablas', key='button8', type='primary'):
@@ -250,20 +268,36 @@ def start_extraction():
     show_footer()
 
 
-def create_download_button(table, filename, key, path=None):
+def create_download_button(table, filename, key, path=None, filenames=[]):
+    st.markdown("""
+        <style>
+        .stDownloadButton>button {
+            width: 100%;
+        }
+        </style>
+        """, unsafe_allow_html=True)
     if path:
         if os.path.exists(path + filename):
-            if st.button(f'Descargar {table}', key=key, type='secondary'):
-                with st.spinner(f'Generando link de descarga para {table}...'):
-                    href = create_download_link(table, filename)()
-                    st.markdown(href, unsafe_allow_html=True)
-        elif table == 'todas las tablas':
-            if st.button(f'Descargar {table}', key=key, type='primary'):
-                with st.spinner(f'Generando link de descarga para {table}...'):
-                    href = create_download_link_all(filename, 'all_data.zip')()
-                    st.markdown(href, unsafe_allow_html=True)
+            with st.spinner(f'Generando link de descarga para {table}...'):
+                if st.download_button(f'Descargar {table}', data=create_download_link(table, filename)(),
+                                      file_name=f'{filename.split(".")[0]}.zip', key=key,
+                                      type='secondary'):
+                    st.success(f"Archivo {filename[:-4]}.zip guardado con éxito.")
+
+        elif table == 'todas las tablas' and check_files_exist(filenames,
+                                                               path_config.contrataciones_processed_csv_path):
+            with st.spinner(f'Generando link de descarga para {table}...'):
+                if st.download_button(
+                        f'Descargar {table}', data=create_download_link_all(filename, 'all_data.zip')(), key=key,
+                        type='primary', file_name='all_data.zip'):
+                    st.success(f"Archivo all_data.zip guardado con éxito.")
+                    # href = create_download_link_all(filename, 'all_data.zip')()
+                    # st.markdown(href, unsafe_allow_html=True)
         else:
-            st.error(f'El archivo {table} no existe.')
+            if table == 'todas las tablas':
+                st.error(f'No se han generado los archivos CSV necesarios para la descarga de {table}.')
+            else:
+                st.error(f'El archivo de {table} no existe.')
 
 
 def download_results():
@@ -294,18 +328,18 @@ def download_results():
         'todas las tablas': path_config.contrataciones_processed_csv_path
     }
 
-    cols = st.columns(2)
-
     # Add buttons to columns
     for i, (table, file_name) in enumerate(files.items()):
         if table != 'todas las tablas':
             create_download_button(table=table, filename=file_name, key=f'download_{i}',
                                    path=path_config.contrataciones_processed_csv_path)
         else:
-            create_download_button(table='todas las tablas', filename=files['todas las tablas'], key=f'download_{i}',
+            create_download_button(table='todas las tablas', filename=files['todas las tablas'],
+                                   filenames=[v for (_, v) in files.items()], key=f'download_{i}',
                                    path=path_config.contrataciones_processed_csv_path)
 
-    show_footer()
+
+show_footer()
 
 
 def main():
@@ -433,5 +467,3 @@ if __name__ == '__main__':
         st.session_state.button_pressed = False
 
     st.markdown("<br>", unsafe_allow_html=True)
-
-# image_placeholder.image('docs/images/mottum.svg', width=500)
