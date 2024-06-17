@@ -13,7 +13,10 @@ logger = logging.getLogger("Contrataciones")
 
 
 def connect_to_mongodb():
-    """Conexión a la base de datos MongoDB"""
+    """
+    Conexión a la base de datos MongoDB
+    :return: Objeto de la base de datos
+    """
     try:
         logger.info("Conectando a la base de datos MongoDB...")
         client = MongoClient(DB_URL, connectTimeoutMS=5000)
@@ -26,6 +29,11 @@ def connect_to_mongodb():
 
 
 def convert_decimal_to_decimal128(item):
+    """
+    Convierte Decimal o String to Decimal128 para insertar en MongoDB
+    :param item: Item a convertir
+    :return: Item convertido a decimal128
+    """
     if isinstance(item, list):
         for i in range(len(item)):
             item[i] = convert_decimal_to_decimal128(item[i])
@@ -43,6 +51,11 @@ def convert_decimal_to_decimal128(item):
 
 
 def insert_data_to_mongodb(data):
+    """
+    Inserta los datos en la base de datos MongoDB
+    :param data: Datos a insertar
+    :return: None
+    """
     client = MongoClient(DB_URL)
     db = client[DB_NAME]
     collection = db[COLLECTION_NAME]
@@ -57,6 +70,13 @@ def insert_data_to_mongodb(data):
 
 
 def process_large_json(file_path, max_lines=5000, progress_bar=None):
+    """
+    Procesa un archivo JSON grande por chunks y lo inserta en la base de datos MongoDB
+    :param file_path: Archivo JSON a procesar
+    :param max_lines: Número máximo de líneas por chunk
+    :param progress_bar: Barra de progreso (Streamlit)
+    :return: None
+    """
     client = MongoClient(DB_URL)
     db = client[DB_NAME]
     collection = db[COLLECTION_NAME]
@@ -74,19 +94,30 @@ def process_large_json(file_path, max_lines=5000, progress_bar=None):
                 insert_data_to_mongodb(chunk)
                 chunk = []
                 if progress_bar:
-                    progress_bar.progress(i / 2742267, f"Processing JSON file ({i} records)")
+                    progress_bar.progress(i / 2742267,
+                                          f"Processing JSON file ({i} / 2742267 records). Progreso: "
+                                          f"{round((i / 2742267) * 100, 2)} %")
         if chunk:  # insert remaining records in the chunk
             insert_data_to_mongodb(chunk)
     progress_bar.progress(1)
 
 
 def get_file_size(file_path):
+    """
+    Obtiene el tamaño de un archivo en GB
+    :param file_path: Ruta del archivo.
+    :return: Tamaño del archivo en GB con dos decimales.
+    """
     size_in_bytes = os.path.getsize(file_path)
     size_in_gb = size_in_bytes / 1073741824  # Convert bytes to GB
     return round(size_in_gb, 2)
 
 
 def get_collection_count():
+    """
+    Obtiene el número de documentos en la colección de la base de datos
+    :return: Número de documentos en la colección
+    """
     client = MongoClient(DB_URL)
     db = client[DB_NAME]
     collection = db[COLLECTION_NAME]

@@ -163,17 +163,28 @@ git clone https://github.com/MottumData/Anticorruption_ETL_MEX.git
 ```bash
 cd Anticorruption_ETL_MEX
 ```
+
 3. **Construir y ejecutar el contenedor Docker**. Para construir y ejecutar el contenedor Docker, ejecute el siguiente
    comando:
+
 ```bash
 docker-compose up --build # -d para ejecutar en segundo plano
 ```
-
 
 Una vez ejecutado el contenedor de Docker, podrá acceder a las interfaces de usuario a través de los siguientes enlaces:
 
 - **Interfaz de Streamlit**: [http://localhost:8502/](http://localhost:8502/)
 - **Jupyter Notebooks**: [http://localhost:8889/](http://localhost:8889/)
+
+### Descargar la última versión
+
+Para usar la última versión del proyecto, sitúese en la carpeta del proyecto y ejecute el siguiente comando:
+
+```bash
+git pull
+```
+
+A continuación puede ejecutar el proyecto con la última versión siguiendo los pasos de ejecución anteriores.
 
 ## Autores
 
