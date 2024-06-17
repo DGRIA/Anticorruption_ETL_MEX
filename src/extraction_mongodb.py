@@ -12,6 +12,11 @@ mongo_logger.setLevel(logging.WARNING)
 
 
 def clean_licitacion(df_licitacion):
+    """
+    Limpia los datos de licitación
+    :param df_licitacion: DataFrame de licitación
+    :return: DataFrame de licitación limpio
+    """
     df_licitacion['award_end_date'] = pd.to_datetime(df_licitacion['award_end_date'], errors='coerce')
     sorted_df = df_licitacion.sort_values(['cve_expediente', 'award_end_date'], ascending=[True, False])
     most_recent_dates = sorted_df.groupby('cve_expediente')['award_end_date'].max().reset_index()
@@ -27,8 +32,13 @@ def clean_licitacion(df_licitacion):
     return df_licitacion
 
 
-def extract_participantes_proveedores(db):
-    """Extrae los datos de Participantes_Proveedores y los guarda en un archivo csv_files."""
+def extract_participantes_proveedores(db, progress_bar=None):
+    """
+    Extrae los datos de Participantes_Proveedores y los guarda en un archivo csv.
+    :param progress_bar: Barra de progreso (Streamlit)
+    :param db: Base de datos de MongoDB
+    :return: None
+    """
     try:
         logger.info("Iniciando extracción de Participantes Proveedores...")
         # Realiza la consulta a la base de datos
@@ -37,7 +47,7 @@ def extract_participantes_proveedores(db):
         logger.info("Número de documentos en la colección: %s", num_documents)
         consulta_actualizada = consulta_actualizada.find({}, {})
         datos = []
-        for contrato in consulta_actualizada:
+        for i, contrato in enumerate(consulta_actualizada):
             for party in contrato.get('releases', [{}])[0].get('parties', []):
                 if party:
                     roles = party.get('roles', [])
@@ -61,6 +71,10 @@ def extract_participantes_proveedores(db):
                             'contactPoint_telephone': party.get('contactPoint', {}).get('telephone', '')
                         }
                         datos.append(contrato_dict)
+            if progress_bar is not None:
+                progress_bar.progress((i / num_documents),
+                                      f"Extrayendo datos de Participantes Proveedores: "
+                                      f"{round((i / num_documents) * 100, 2)}%")
 
         # Creando el dataframe de Participantes_Proveedores
         df_participantes_proveedores = pd.DataFrame(datos)
@@ -84,16 +98,21 @@ def extract_participantes_proveedores(db):
         logger.error(f"Error durante la extracción de Participantes_Proveedores: {e}")
 
 
-def extract_licitacion(db):
-    """Extrae los datos de licitación y los guarda en un archivo CSV."""
+def extract_licitacion(db, progress_bar=None):
+    """
+    Extrae los datos de licitación y los guarda en un archivo CSV.
+    :param progress_bar: Barra de progreso (Streamlit)
+    :param db: Base de datos de MongoDB
+    :return: None
+    """
     try:
         logger.info("Iniciando extracción de datos de licitación...")
 
         consulta_actualizada = db[COLLECTION_NAME].find({}, {})
-
+        num_documents = db[COLLECTION_NAME].count_documents({})
         datos = []
 
-        for contrato in consulta_actualizada:
+        for i, contrato in enumerate(consulta_actualizada):
             contrato_dict = {
                 'cve_expediente': '',
                 'procurementMethod': '',
@@ -145,6 +164,9 @@ def extract_licitacion(db):
                 contrato_dict['framework_agreement_title'] = tender.get('frameworkAgreementTitle', '')
                 contrato_dict['submission_method'] = tender.get('submissionMethod', [''])[0]
 
+                if progress_bar is not None:
+                    progress_bar.progress((i / num_documents),
+                                          f"Extrayendo datos de licitación: {round((i / num_documents) * 100, 2)}%")
             except AttributeError:
                 logger.error("Error al extraer datos de licitación.")
             datos.append(contrato_dict)
@@ -176,10 +198,17 @@ def extract_licitacion(db):
 
 
 # Asignación
-def extract_asignacion(db):
+def extract_asignacion(db, progress_bar=None):
+    """
+    Extrae los datos de Asignación y los guarda en un archivo CSV.
+    :param progress_bar: Barra de progreso (Streamlit)
+    :param db: Base de datos de MongoDB
+    :return: None
+    """
     documentos = db[COLLECTION_NAME].find({}, {})
+    num_documents = db[COLLECTION_NAME].count_documents({})
     datos = []
-    for contrato in documentos:
+    for i, contrato in enumerate(documentos):
         for award in contrato.get('releases', [{}])[0].get('awards', []):
             contrato_dict = {
                 'cve_expediente': contrato.get('releases', [{}])[0].get('tender', {}).get('id', ''),
@@ -208,6 +237,9 @@ def extract_asignacion(db):
                     'documents') else ''
             }
             datos.append(contrato_dict)
+            if progress_bar is not None:
+                progress_bar.progress((i / num_documents),
+                                      f"Extrayendo datos de Asignación: {round((i / num_documents) * 100, 2)}%")
     df_asignacion = pd.DataFrame(datos)
     df_asignacion = clean_asignacion(df_asignacion)
     if not df_asignacion.empty:
@@ -226,11 +258,18 @@ def extract_asignacion(db):
 
 # Comprador
 
-def extract_comprador(db):
+def extract_comprador(db, progress_bar=None):
+    """
+    Extrae los datos de Comprador y los guarda en un archivo CSV.
+    :param progress_bar: Barra de progreso (Streamlit)
+    :param db: Base de datos de MongoDB
+    :return: None
+    """
     consulta_actualizada = db[COLLECTION_NAME].find({}, {})
+    num_documents = db[COLLECTION_NAME].count_documents({})
     # Creando una lista de diccionarios para facilitar la creación del dataframe
     datos = []
-    for contrato in consulta_actualizada:
+    for i, contrato in enumerate(consulta_actualizada):
         parties = contrato.get('releases', [{}])[0].get('parties', [])
         for party in parties:
             if party:  # Check if party is not None
@@ -255,6 +294,9 @@ def extract_comprador(db):
                         'contact_point_telephone': party.get('contactPoint', {}).get('telephone', '')
                     }
                     datos.append(contrato_dict)
+        if progress_bar is not None:
+            progress_bar.progress((i / num_documents),
+                                  f"Extrayendo datos de Comprador: {round((i / num_documents) * 100, 2)}%")
 
     # Creando el dataframe de comprador
     df_comprador = pd.DataFrame(datos)
@@ -269,12 +311,18 @@ def extract_comprador(db):
 
 
 # Documentos TENDER
-def extract_documentos_tender(db):
+def extract_documentos_tender(db, progress_bar=None):
+    """
+    Extrae los datos de Documentos Tender y los guarda en un archivo CSV.
+    :param progress_bar: Barra de progreso (Streamlit)
+    :param db: Parámetro de la base de datos de MongoDB
+    :return: None
+    """
     consulta_actualizada = db[COLLECTION_NAME].find({}, {})
-
+    num_documents = db[COLLECTION_NAME].count_documents({})
     # Creando una lista de diccionarios para facilitar la creación del dataframe
     datos = []
-    for contrato in consulta_actualizada:
+    for i, contrato in enumerate(consulta_actualizada):
         # Accede a cada release. Asumimos que cada contrato tiene al menos un release.
         releases = contrato.get('releases', [])
         for release in releases:
@@ -310,6 +358,9 @@ def extract_documentos_tender(db):
                     'docs_url_tender': ''
                 }
                 datos.append(contrato_dict)
+        if progress_bar is not None:
+            progress_bar.progress((i / num_documents),
+                                  f"Extrayendo datos de Documentos Tender: {round((i / num_documents) * 100, 2)}%")
 
     # Creando el dataframe de documentos tender
     df_documentos_tender = pd.DataFrame(datos)
@@ -325,12 +376,18 @@ def extract_documentos_tender(db):
 
 
 # ITEM_ADQ
-def extract_item_adq(db):
+def extract_item_adq(db, progress_bar=None):
+    """
+    Extrae los datos de Item Adquisición y los guarda en un archivo CSV.
+    :param progress_bar: Barra de progreso (Streamlit)
+    :param db: Parámetro de la base de datos de MongoDB
+    :return: None
+    """
     consulta_actualizada = db[COLLECTION_NAME].find({}, {})
-
+    num_documents = db[COLLECTION_NAME].count_documents({})
     # Creando una lista de diccionarios para facilitar la creación del dataframe
     datos = []
-    for contrato in consulta_actualizada:
+    for i, contrato in enumerate(consulta_actualizada):
         for award in contrato.get('releases', [{}])[0].get('awards', [{}]):
             for item in award.get('items', []):
                 contrato_dict = {
@@ -348,6 +405,9 @@ def extract_item_adq(db):
                     'items_description_awards': item.get('description', ''),
                 }
                 datos.append(contrato_dict)
+        if progress_bar is not None:
+            progress_bar.progress((i / num_documents),
+                                  f"Extrayendo datos de Item Adquisición: {round((i / num_documents) * 100, 2)}%")
 
     # Creando el dataframe de ITEMS
     df_items = pd.DataFrame(datos)
@@ -362,12 +422,17 @@ def extract_item_adq(db):
 
 
 # ITEM_TENDER
-def extract_item_tender(db):
+def extract_item_tender(db, progress_bar=None):
+    """
+    Extrae los datos de Item Tender y los guarda en un archivo CSV.
+    :param db: Parámetro de la base de datos de MongoDB
+    :return: None
+    """
     consulta_actualizada = db[COLLECTION_NAME].find({}, {})
-
+    num_documents = db[COLLECTION_NAME].count_documents({})
     # Creando una lista de diccionarios para facilitar la creación del dataframe
     datos = []
-    for contrato in consulta_actualizada:
+    for i, contrato in enumerate(consulta_actualizada):
         for item in contrato.get('releases', [{}])[0].get('tender', {}).get('items', []):
             contrato_dict = {
                 'cve_expediente': contrato.get('releases', [{}])[0].get('tender', {}).get('id', ''),
@@ -379,7 +444,9 @@ def extract_item_tender(db):
                 'items_description_tender': item.get('description', ''),
             }
             datos.append(contrato_dict)
-
+        if progress_bar is not None:
+            progress_bar.progress((i / num_documents),
+                                  f"Extrayendo datos de Item Tender: {round((i / num_documents) * 100, 2)}%")
     # Creando el dataframe de Tender Items
     df_tender_items = pd.DataFrame(datos)
 
@@ -395,6 +462,11 @@ def extract_item_tender(db):
 
 
 def clean_asignacion(df_asignacion):
+    """
+    Limpia los datos de asignación
+    :param df_asignacion: DataFrame de asignación
+    :return: DataFrame de asignación tras el proceso de limpieza
+    """
     df_asignacion['contract_start_date'] = pd.to_datetime(df_asignacion['contract_start_date'], errors='coerce')
     df_asignacion = df_asignacion.sort_values(['cve_contrato', 'contract_start_date'], ascending=[True, False])
     df_asignacion = df_asignacion.drop_duplicates(subset=['cve_contrato'], keep='first')
@@ -403,6 +475,11 @@ def clean_asignacion(df_asignacion):
 
 
 def clean_documentos_tender(df_documentos_tender):
+    """
+    Limpia los datos de documentos tender
+    :param df_documentos_tender: DataFrame de documentos tender
+    :return: DataFrame de documentos tender tras el proceso de limpieza.
+    """
     df_documentos_tender['docs_date_published_tender'] = pd.to_datetime(
         df_documentos_tender['docs_date_published_tender'])
     df_documentos_tender = df_documentos_tender.sort_values(by='docs_date_published_tender', ascending=True)
