@@ -18,6 +18,17 @@ logger = logging.getLogger("Contrataciones")
 logger.setLevel(logging.INFO)
 
 
+def show_footer():
+    st.markdown("<br>", unsafe_allow_html=True)
+    cols = st.columns([1, 1, 1])  # Create three columns
+    inner_cols = cols[2].columns([1, 1, 1, 1])  # Create two columns inside the middle column
+    inner_cols[0].markdown(
+        "<p style='text-align: center; font-family: Comic Sans MS; padding-top: 12px; white-space: nowrap;'>Made with "
+        "love</p>",
+        unsafe_allow_html=True)  # Center the text, change the font, and add padding
+    inner_cols[2].image('docs/images/mottum2.png', use_column_width=True)
+
+
 def create_download_link(table, filename):
     def download():
         # Create a new ZIP file
@@ -67,14 +78,7 @@ def show_intro():
         """
     ))
 
-    st.markdown("<br>", unsafe_allow_html=True)
-    cols = st.columns([1, 1, 1])  # Create three columns
-    inner_cols = cols[2].columns([1, 1, 1, 1])  # Create two columns inside the middle column
-    inner_cols[0].markdown(
-        "<p style='text-align: center; font-family: Comic Sans MS; padding-top: 12px; white-space: nowrap;'>Made with "
-        "love</p>",
-        unsafe_allow_html=True)  # Center the text, change the font, and add padding
-    inner_cols[2].image('docs/images/mottum2.png', use_column_width=True)
+    show_footer()
 
 
 def start_download_and_unzip():
@@ -94,53 +98,7 @@ def start_download_and_unzip():
     cols_button = st.columns([1, 1, 1])  # Create three columns for the button
     if cols_button[1].button('Inicio de descarga'):
         main()
-
-    st.markdown("<br>", unsafe_allow_html=True)
-    cols = st.columns([1, 1, 1])  # Create three columns
-    inner_cols = cols[2].columns([1, 1, 1, 1])  # Create two columns inside the middle column
-    inner_cols[0].markdown(
-        "<p style='text-align: center; font-family: Comic Sans MS; padding-top: 12px; white-space: nowrap;'>Made with love</p>",
-        unsafe_allow_html=True)  # Center the text, change the font, and add padding
-    inner_cols[2].image('docs/images/mottum2.png', use_column_width=True)
-
-
-# def start_upload_and_unzip():
-#     st.markdown(
-#         "En el caso de que ya tengas el archivo descargado, puedes subirlo y descomprimirlo aquí. Para la descarga "
-#         "manual del archivo, puedes hacerlo desde [Compranet]("
-#         "https://compranetinfo.hacienda.gob.mx/dabiertos/contrataciones_arr.json.zip). "
-#         "En el caso de que ya esté subido el archivo, puedes descomprimirlo de nuevo.")
-#
-#     if os.path.exists(path_config.contrataciones_raw_unzip_path + CONTRATACIONES_JSON):
-#         st.info(
-#             f"El archivo `{CONTRATACIONES_ZIP}` ya se encuentra en el directorio "
-#             f"`{path_config.contrataciones_raw_unzip_path}`. Tiene un tamaño de "
-#             f"{get_file_size(path_config.contrataciones_raw_unzip_path + CONTRATACIONES_ZIP)} GB.")
-#
-#     uploaded_file = st.file_uploader("Elige el archivo JSON comprimido", type=['zip'])
-#     with st.spinner('Subiendo archivo...'):
-#         if uploaded_file is not None:
-#             # To read file as bytes:
-#             # bytes_data = uploaded_file.read()
-#             with open(os.path.join(path_config.contrataciones_raw_unzip_path, 'contrataciones_arr.json.zip'),
-#                       'wb') as f:
-#                 for chunk in iter(lambda: uploaded_file.read(1024 * 1024), b''):
-#                     f.write(chunk)
-#
-#             st.success(
-#                 f"Archivo ZIP subido: {uploaded_file.name}. Guardado en Streamlit como `contrataciones_arr.json.zip`.")
-#
-#     if os.path.exists(path_config.contrataciones_raw_unzip_path + CONTRATACIONES_ZIP):
-#         logger.info(f"El archivo {CONTRATACIONES_JSON} ya se encuentra en el directorio.")
-#         cols_button = st.columns([1, 1, 1])
-#         if cols_button[1].button('Descomprimir archivo', key='upload_unzip', type='secondary'):
-#             with st.spinner(f"Descomprimiendo archivo {CONTRATACIONES_ZIP}..."):
-#                 progress_bar = st.progress(0, 'Iniciando descompresión...')
-#                 unzip(pb=progress_bar)
-#                 progress_bar.progress(100)
-#             st.success('Archivo descomprimido con éxito. Ya puede popular la base de datos.')
-#
-#
+    show_footer()
 
 
 def start_upload_and_unzip():
@@ -162,8 +120,6 @@ def start_upload_and_unzip():
         logger.info(f"Subiendo archivo {uploaded_file}")
         if uploaded_file is not None:
             logger.info(f"El archivo no está vacío")
-            # To read file as bytes:
-            # bytes_data = uploaded_file.read()
             try:
                 with open(os.path.join(path_config.contrataciones_raw_unzip_path, 'contrataciones_arr.json.zip'),
                           'wb') as f:
@@ -189,14 +145,7 @@ def start_upload_and_unzip():
                 except Exception as e:
                     st.error(f"Error al descomprimir el archivo: {str(e)}")
 
-    st.markdown("<br>", unsafe_allow_html=True)
-    cols = st.columns([1, 1, 1])  # Create three columns
-    inner_cols = cols[2].columns([1, 1, 1, 1])  # Create two columns inside the middle column
-    inner_cols[0].markdown(
-        "<p style='text-align: center; font-family: Comic Sans MS; padding-top: 12px; white-space: nowrap;'>Made with "
-        "love</p>",
-        unsafe_allow_html=True)  # Center the text, change the font, and add padding
-    inner_cols[2].image('docs/images/mottum2.png', use_column_width=True)
+    show_footer()
 
 
 def start_populate():
@@ -224,13 +173,7 @@ def start_populate():
                                progress_bar=progress_bar)
             progress_bar.progress(100, 'Datos insertados en MongoDB.')
 
-    st.markdown("<br>", unsafe_allow_html=True)
-    cols = st.columns([1, 1, 1])  # Create three columns
-    inner_cols = cols[2].columns([1, 1, 1, 1])  # Create two columns inside the middle column
-    inner_cols[0].markdown(
-        "<p style='text-align: center; font-family: Comic Sans MS; padding-top: 12px; white-space: nowrap;'>Made with love</p>",
-        unsafe_allow_html=True)  # Center the text, change the font, and add padding
-    inner_cols[2].image('docs/images/mottum2.png', use_column_width=True)
+    show_footer()
 
 
 def start_extraction():
@@ -304,15 +247,7 @@ def start_extraction():
             extract_progress_bar.progress(7 / 7, 'Extracción completa.')
         st.success('La extracción fue un éxito.')
 
-    # Change the color of the 'Extract All Tables' button
-
-    st.markdown("<br>", unsafe_allow_html=True)
-    cols4 = st.columns([1, 1, 1])  # Create three columns
-    inner_cols = cols4[2].columns([1, 1, 1, 1])  # Create two columns inside the middle column
-    inner_cols[0].markdown(
-        "<p style='text-align: center; font-family: Comic Sans MS; padding-top: 12px; white-space: nowrap;'>Made with love</p>",
-        unsafe_allow_html=True)  # Center the text, change the font, and add padding
-    inner_cols[2].image('docs/images/mottum2.png', use_column_width=True)  # Colocar la imagen
+    show_footer()
 
 
 def create_download_button(table, filename, key, path=None):
@@ -370,25 +305,7 @@ def download_results():
             create_download_button(table='todas las tablas', filename=files['todas las tablas'], key=f'download_{i}',
                                    path=path_config.contrataciones_processed_csv_path)
 
-    st.markdown("<br>", unsafe_allow_html=True)
-    cols = st.columns([1, 1, 1])  # Create three columns
-    inner_cols = cols[2].columns([1, 1, 1, 1])  # Create two columns inside the middle column
-    inner_cols[0].markdown(
-        "<p style='text-align: center; font-family: Comic Sans MS; padding-top: 12px; white-space: nowrap;'>Made with love</p>",
-        unsafe_allow_html=True)  # Center the text, change the font, and add padding
-    inner_cols[2].image('docs/images/mottum2.png', use_column_width=True)
-
-
-def clear_directory(directory):
-    for filename in os.listdir(directory):
-        file_path = os.path.join(directory, filename)
-        try:
-            if os.path.isfile(file_path) or os.path.islink(file_path):
-                os.unlink(file_path)
-            elif os.path.isdir(file_path):
-                shutil.rmtree(file_path)
-        except Exception as e:
-            print(f'Failed to delete {file_path}. Reason: {e}')
+    show_footer()
 
 
 def main():
@@ -399,8 +316,6 @@ def main():
         os.makedirs(config.path_config.contrataciones_raw_unzip_path)
         logger.info("Directory %s missing, creating %s", config.path_config.contrataciones_raw_unzip_path,
                     config.path_config.contrataciones_raw_unzip_path)
-
-    clear_directory(config.path_config.contrataciones_raw_unzip_path)
 
     with st.spinner(
             'Este proceso puede tardar unos minutos dependiendo de su conexión a internet'):
