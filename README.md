@@ -1,7 +1,7 @@
 # 🇲🇽 Proyecto de ETL Anticorrupción México
 
 <h1 align="center"> Streamlit Anticorrupción México</h1>
-<p align="center"><img src="'docs/images/demo.png'"/></p>
+<p align="center"><img src="docs/images/demo.png"/></p>
 
 ## 📑 Tabla de Contenidos
 
