@@ -189,6 +189,12 @@ git pull
 
 A continuación puede ejecutar el proyecto con la última versión siguiendo los pasos de ejecución anteriores.
 
+## Documentación
+
+En la siguiente [dirección](https://mottum.notion.site/P-gina-de-Adopci-n-SESNA-Anticorrupci-n-a45c9f13c03d4f558c069bdffabfdd37) puedes encontrar unos videos explicatorios acerca de la solución presentada por parte de Mottum en este repositorio. 
+
+<p align="center"><img src="docs/images/mottum_pagina_adopcion.png"/></p>
+
 ## Autores
 
 **Mottum Analytica**
